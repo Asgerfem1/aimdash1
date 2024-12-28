@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { ArrowRight, CheckCircle2, BarChart3, Target, Clock } from "lucide-react";
+import { ArrowRight, CheckCircle2, BarChart3, Target } from "lucide-react";
+import { Navigation } from "@/components/Navigation";
 
 const Index = () => {
   const features = [
@@ -22,24 +23,6 @@ const Index = () => {
     },
   ];
 
-  const testimonials = [
-    {
-      quote: "AimDash transformed how I track my fitness goals. The visual progress indicators keep me motivated!",
-      author: "Sarah J.",
-      role: "Fitness Enthusiast",
-    },
-    {
-      quote: "Perfect for managing my career objectives. The milestone tracking feature is incredibly useful.",
-      author: "Michael R.",
-      role: "Product Manager",
-    },
-    {
-      quote: "The best goal tracking app I've used. Simple yet powerful!",
-      author: "Alex T.",
-      role: "Entrepreneur",
-    },
-  ];
-
   const faqs = [
     {
       question: "How does AimDash work?",
@@ -47,7 +30,7 @@ const Index = () => {
     },
     {
       question: "What's included in the pricing?",
-      answer: "Our simple one-time payment gives you access to all core features, including goal tracking, visual dashboards, and progress monitoring.",
+      answer: "Our simple one-time payment of $49 gives you lifetime access to all core features, including goal tracking, visual dashboards, and progress monitoring. No recurring fees or hidden costs.",
     },
     {
       question: "Is my data secure?",
@@ -57,8 +40,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
+      <Navigation />
+      
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-primary-100 to-white py-20 px-4 md:py-32">
+      <section className="relative bg-gradient-to-b from-primary-100 to-white pt-32 pb-20 px-4 md:pt-40">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-primary-700 mb-6">
@@ -75,7 +60,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-white">
+      <section id="features" className="py-20 px-4 bg-white">
         <div className="container mx-auto max-w-6xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-primary-700">
             How It Works
@@ -96,41 +81,15 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-20 px-4 bg-primary-100">
-        <div className="container mx-auto max-w-6xl">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-primary-700">
-            What Our Users Say
-          </h2>
-          <Carousel className="max-w-xl mx-auto">
-            <CarouselContent>
-              {testimonials.map((testimonial, index) => (
-                <CarouselItem key={index}>
-                  <Card className="border-none shadow-lg">
-                    <CardContent className="p-6 text-center">
-                      <p className="text-lg mb-4 text-gray-600">"{testimonial.quote}"</p>
-                      <p className="font-semibold">{testimonial.author}</p>
-                      <p className="text-sm text-gray-500">{testimonial.role}</p>
-                    </CardContent>
-                  </Card>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-          </Carousel>
-        </div>
-      </section>
-
       {/* Pricing Section */}
-      <section className="py-20 px-4 bg-white">
+      <section id="pricing" className="py-20 px-4 bg-primary-100">
         <div className="container mx-auto max-w-6xl text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-16 text-primary-700">
-            Simple, Transparent Pricing
+            Simple, One-Time Pricing
           </h2>
           <Card className="max-w-md mx-auto border-none shadow-lg">
             <CardContent className="p-6">
-              <h3 className="text-2xl font-bold mb-2">One-Time Payment</h3>
+              <h3 className="text-2xl font-bold mb-2">Lifetime Access</h3>
               <p className="text-4xl font-bold text-primary-700 mb-4">$49</p>
               <ul className="text-left space-y-4 mb-6">
                 <li className="flex items-center">
@@ -145,15 +104,19 @@ const Index = () => {
                   <CheckCircle2 className="text-primary mr-2" size={20} />
                   Progress monitoring tools
                 </li>
+                <li className="flex items-center">
+                  <CheckCircle2 className="text-primary mr-2" size={20} />
+                  No recurring fees ever
+                </li>
               </ul>
-              <Button className="w-full">Get Started Now</Button>
+              <Button className="w-full">Get Lifetime Access</Button>
             </CardContent>
           </Card>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 px-4 bg-primary-100">
+      <section id="faq" className="py-20 px-4 bg-white">
         <div className="container mx-auto max-w-6xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-primary-700">
             Frequently Asked Questions
