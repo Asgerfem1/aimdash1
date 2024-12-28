@@ -1,10 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { ArrowRight, CheckCircle2, BarChart3, Target } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
+import { useNavigate } from "react-router-dom";
+import { useUser } from "@supabase/auth-helpers-react";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const user = useUser();
+
   const features = [
     {
       title: "Set Your Goals",
@@ -52,7 +56,11 @@ const Index = () => {
             <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">
               Track, visualize, and achieve your goals with powerful analytics and intuitive progress tracking.
             </p>
-            <Button size="lg" className="text-lg px-8">
+            <Button 
+              size="lg" 
+              className="text-lg px-8"
+              onClick={() => navigate(user ? "/dashboard" : "/signup")}
+            >
               Get Started <ArrowRight className="ml-2" />
             </Button>
           </div>
@@ -81,8 +89,43 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Product Demo Section */}
+      <section className="py-20 px-4 bg-primary-100">
+        <div className="container mx-auto max-w-6xl">
+          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-primary-700">
+            Powerful Goal Tracking
+          </h2>
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="space-y-6">
+              <h3 className="text-2xl font-semibold">Visualize Your Progress</h3>
+              <p className="text-lg text-gray-600">
+                Track your goals with intuitive dashboards and visual analytics. See your progress over time and stay motivated.
+              </p>
+              <ul className="space-y-4">
+                <li className="flex items-center">
+                  <CheckCircle2 className="text-primary mr-2" />
+                  Interactive goal tracking
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle2 className="text-primary mr-2" />
+                  Progress visualization
+                </li>
+                <li className="flex items-center">
+                  <CheckCircle2 className="text-primary mr-2" />
+                  Achievement milestones
+                </li>
+              </ul>
+            </div>
+            <div className="bg-white p-4 rounded-lg shadow-xl">
+              {/* Placeholder for product screenshot/demo */}
+              <div className="aspect-video bg-gray-100 rounded-lg"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 bg-primary-100">
+      <section id="pricing" className="py-20 px-4 bg-white">
         <div className="container mx-auto max-w-6xl text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-16 text-primary-700">
             Simple, One-Time Pricing
@@ -109,14 +152,19 @@ const Index = () => {
                   No recurring fees ever
                 </li>
               </ul>
-              <Button className="w-full">Get Lifetime Access</Button>
+              <Button 
+                className="w-full"
+                onClick={() => navigate(user ? "/dashboard" : "/signup")}
+              >
+                Get Lifetime Access
+              </Button>
             </CardContent>
           </Card>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section id="faq" className="py-20 px-4 bg-white">
+      <section id="faq" className="py-20 px-4 bg-primary-100">
         <div className="container mx-auto max-w-6xl">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-primary-700">
             Frequently Asked Questions
@@ -143,7 +191,11 @@ const Index = () => {
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             Join thousands of users who are transforming their goals into reality with AimDash.
           </p>
-          <Button size="lg" className="text-lg px-8">
+          <Button 
+            size="lg" 
+            className="text-lg px-8"
+            onClick={() => navigate(user ? "/dashboard" : "/signup")}
+          >
             Start Your Journey <ArrowRight className="ml-2" />
           </Button>
         </div>

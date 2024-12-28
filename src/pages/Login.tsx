@@ -1,35 +1,40 @@
+import { Navigation } from "@/components/Navigation";
 import { Auth } from "@supabase/auth-ui-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useUser } from "@supabase/auth-helpers-react";
 
 const Login = () => {
   const navigate = useNavigate();
+  const user = useUser();
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate("/dashboard");
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <h2 className="mt-6 text-3xl font-bold text-gray-900">Welcome back</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Sign in to your account to continue
-          </p>
-        </div>
-        <div className="mt-8">
+    <div className="min-h-screen bg-gradient-to-b from-primary-100 to-white">
+      <Navigation />
+      <div className="container mx-auto px-4 pt-32">
+        <div className="max-w-md mx-auto bg-white p-8 rounded-lg shadow-lg">
+          <h1 className="text-2xl font-bold text-center mb-6">Welcome Back</h1>
           <Auth
             supabaseClient={supabase}
-            appearance={{ theme: ThemeSupa }}
+            appearance={{
+              theme: ThemeSupa,
+              variables: {
+                default: {
+                  colors: {
+                    brand: '#6366F1',
+                    brandAccent: '#4F46E5',
+                  },
+                },
+              },
+            }}
             theme="light"
             providers={[]}
           />
