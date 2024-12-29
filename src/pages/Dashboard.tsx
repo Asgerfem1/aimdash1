@@ -5,15 +5,25 @@ import { useQuery } from "@tanstack/react-query";
 import { DashboardStats } from "@/components/DashboardStats";
 import { GoalCard } from "@/components/GoalCard";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { GoalDialog } from "@/components/GoalDialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const user = useUser();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<string>("deadline");
 
   const { data: goals, isLoading } = useQuery({
     queryKey: ['goals'],
@@ -43,6 +53,43 @@ const Dashboard = () => {
     setIsDialogOpen(true);
   };
 
+  const filteredGoals = goals?.filter((goal) => {
+    if (priorityFilter !== "all" && goal.priority !== priorityFilter) return false;
+    if (categoryFilter !== "all" && goal.category !== categoryFilter) return false;
+    return true;
+  });
+
+  const sortedGoals = [...(filteredGoals || [])].sort((a, b) => {
+    switch (sortBy) {
+      case "deadline":
+        if (!a.deadline) return 1;
+        if (!b.deadline) return -1;
+        return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+      case "priority":
+        const priorityOrder = { High: 0, Medium: 1, Low: 2 };
+        return priorityOrder[a.priority] - priorityOrder[b.priority];
+      case "progress":
+        return b.progress - a.progress;
+      default:
+        return 0;
+    }
+  });
+
+  const categories = [...new Set(goals?.map(goal => goal.category) || [])];
+  
+  const todaysFocus = sortedGoals?.filter(goal => {
+    if (goal.status === "Completed") return false;
+    if (goal.priority === "High") return true;
+    if (goal.deadline) {
+      const deadline = new Date(goal.deadline);
+      const today = new Date();
+      const threeDaysFromNow = new Date();
+      threeDaysFromNow.setDate(today.getDate() + 3);
+      return deadline <= threeDaysFromNow;
+    }
+    return false;
+  });
+
   if (!user) return null;
 
   return (
@@ -62,17 +109,78 @@ const Dashboard = () => {
           <DashboardStats />
         </div>
 
+        {todaysFocus && todaysFocus.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-xl font-semibold mb-4">Today's Focus</h2>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {todaysFocus.map((goal) => (
+                <GoalCard
+                  key={goal.id}
+                  id={goal.id}
+                  title={goal.title}
+                  category={goal.category}
+                  progress={goal.progress}
+                  deadline={goal.deadline}
+                  priority={goal.priority}
+                  onEdit={handleEdit}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="mt-12">
-          <h2 className="text-2xl font-semibold mb-6">Your Goals</h2>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <h2 className="text-2xl font-semibold">Your Goals</h2>
+            <div className="flex flex-wrap gap-4">
+              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Priorities</SelectItem>
+                  <SelectItem value="High">High</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Low">Low</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="deadline">Deadline</SelectItem>
+                  <SelectItem value="priority">Priority</SelectItem>
+                  <SelectItem value="progress">Progress</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           {isLoading ? (
             <div className="text-center text-gray-600">Loading goals...</div>
-          ) : goals?.length === 0 ? (
+          ) : sortedGoals?.length === 0 ? (
             <div className="text-center text-gray-600">
               No goals yet. Click the Add Goal button to get started!
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {goals?.map((goal) => (
+              {sortedGoals?.map((goal) => (
                 <GoalCard
                   key={goal.id}
                   id={goal.id}
