@@ -68,6 +68,48 @@ export type Database = {
           },
         ]
       }
+      goals: {
+        Row: {
+          category: string
+          created_at: string
+          deadline: string | null
+          description: string | null
+          id: string
+          priority: Database["public"]["Enums"]["priority_level"]
+          progress: number
+          status: Database["public"]["Enums"]["goal_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["priority_level"]
+          progress?: number
+          status?: Database["public"]["Enums"]["goal_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["priority_level"]
+          progress?: number
+          status?: Database["public"]["Enums"]["goal_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -88,6 +130,41 @@ export type Database = {
           username?: string | null
         }
         Relationships: []
+      }
+      tasks: {
+        Row: {
+          completed: boolean
+          created_at: string
+          goal_id: string
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          goal_id: string
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          goal_id?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       transactions: {
         Row: {
@@ -150,7 +227,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      goal_status: "Not Started" | "In Progress" | "Completed"
+      priority_level: "Low" | "Medium" | "High"
     }
     CompositeTypes: {
       [_ in never]: never

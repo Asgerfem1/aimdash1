@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 
 export const Navigation = () => {
@@ -21,8 +21,10 @@ export const Navigation = () => {
   };
 
   const scrollToSection = (sectionId: string) => {
+    // If not on the index page, navigate to index first
     if (location.pathname !== "/") {
       navigate("/");
+      
       // Wait for navigation to complete before scrolling
       setTimeout(() => {
         const element = document.getElementById(sectionId);
@@ -31,11 +33,14 @@ export const Navigation = () => {
         }
       }, 100);
     } else {
+      // If already on index page, scroll directly
       const element = document.getElementById(sectionId);
       if (element) {
         element.scrollIntoView({ behavior: "smooth" });
       }
     }
+    
+    // Close mobile menu if open
     setIsMenuOpen(false);
   };
 
