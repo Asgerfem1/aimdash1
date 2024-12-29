@@ -19,6 +19,14 @@ export const Navigation = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+      setIsMenuOpen(false);
+    }
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b">
       <div className="max-w-7xl mx-auto px-4">
@@ -31,15 +39,18 @@ export const Navigation = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-gray-600 hover:text-primary">
-              Features
-            </a>
-            <a href="#how-it-works" className="text-gray-600 hover:text-primary">
+            <button 
+              onClick={() => scrollToSection('how-it-works')} 
+              className="text-gray-600 hover:text-primary"
+            >
               How It Works
-            </a>
-            <a href="#pricing" className="text-gray-600 hover:text-primary">
+            </button>
+            <button 
+              onClick={() => scrollToSection('pricing')} 
+              className="text-gray-600 hover:text-primary"
+            >
               Pricing
-            </a>
+            </button>
             {user ? (
               <>
                 <Button onClick={() => navigate("/dashboard")}>Dashboard</Button>
@@ -69,27 +80,18 @@ export const Navigation = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 animate-fade-in">
             <div className="flex flex-col space-y-4">
-              <a
-                href="#features"
-                className="text-gray-600 hover:text-primary px-4 py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Features
-              </a>
-              <a
-                href="#how-it-works"
-                className="text-gray-600 hover:text-primary px-4 py-2"
-                onClick={() => setIsMenuOpen(false)}
+              <button
+                onClick={() => scrollToSection('how-it-works')}
+                className="text-gray-600 hover:text-primary px-4 py-2 text-left"
               >
                 How It Works
-              </a>
-              <a
-                href="#pricing"
-                className="text-gray-600 hover:text-primary px-4 py-2"
-                onClick={() => setIsMenuOpen(false)}
+              </button>
+              <button
+                onClick={() => scrollToSection('pricing')}
+                className="text-gray-600 hover:text-primary px-4 py-2 text-left"
               >
                 Pricing
-              </a>
+              </button>
               {user ? (
                 <>
                   <Button
