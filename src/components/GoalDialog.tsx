@@ -8,6 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUser } from "@supabase/auth-helpers-react";
 
 interface GoalDialogProps {
   open: boolean;
@@ -23,6 +24,7 @@ interface GoalFormData {
 }
 
 export function GoalDialog({ open, onOpenChange, goalId }: GoalDialogProps) {
+  const user = useUser();
   const queryClient = useQueryClient();
   const { register, handleSubmit, reset, setValue } = useForm<GoalFormData>();
 
@@ -54,12 +56,15 @@ export function GoalDialog({ open, onOpenChange, goalId }: GoalDialogProps) {
 
   const createGoal = useMutation({
     mutationFn: async (data: GoalFormData) => {
+      if (!user) throw new Error("User must be logged in");
+      
       const { error } = await supabase
         .from('goals')
-        .insert([{
+        .insert({
           ...data,
+          user_id: user.id,
           deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
-        }]);
+        });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -75,10 +80,13 @@ export function GoalDialog({ open, onOpenChange, goalId }: GoalDialogProps) {
 
   const updateGoal = useMutation({
     mutationFn: async (data: GoalFormData) => {
+      if (!user) throw new Error("User must be logged in");
+      
       const { error } = await supabase
         .from('goals')
         .update({
           ...data,
+          user_id: user.id,
           deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
         })
         .eq('id', goalId);
@@ -96,6 +104,11 @@ export function GoalDialog({ open, onOpenChange, goalId }: GoalDialogProps) {
   });
 
   const onSubmit = (data: GoalFormData) => {
+    if (!user) {
+      toast.error('You must be logged in to manage goals');
+      return;
+    }
+
     if (goalId) {
       updateGoal.mutate(data);
     } else {
