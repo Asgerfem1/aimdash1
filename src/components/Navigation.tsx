@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
@@ -7,6 +7,7 @@ import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const supabase = useSupabaseClient();
   const user = useUser();
 
@@ -20,11 +21,22 @@ export const Navigation = () => {
   };
 
   const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-      setIsMenuOpen(false);
+    if (location.pathname !== "/") {
+      navigate("/");
+      // Wait for navigation to complete before scrolling
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      }, 100);
+    } else {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
     }
+    setIsMenuOpen(false);
   };
 
   return (
