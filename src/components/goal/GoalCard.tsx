@@ -7,6 +7,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { GoalActions } from "./GoalActions";
+import { useState } from "react";
+import { DeleteGoalDialog } from "./DeleteGoalDialog";
 
 interface GoalCardProps {
   id: string;
@@ -34,14 +36,22 @@ export function GoalCard({
   onEdit
 }: GoalCardProps) {
   const queryClient = useQueryClient();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const deleteGoal = useMutation({
-    mutationFn: async () => {
-      const { error } = await supabase
-        .from('goals')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
+    mutationFn: async (deleteAll: boolean) => {
+      if (deleteAll && isRecurring) {
+        const { error } = await supabase.rpc('delete_recurring_goal_instances', {
+          goal_id: id
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('goals')
+          .delete()
+          .eq('id', id);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
@@ -71,10 +81,9 @@ export function GoalCard({
     },
   });
 
-  const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this goal?')) {
-      deleteGoal.mutate();
-    }
+  const handleDelete = (deleteAll: boolean) => {
+    deleteGoal.mutate(deleteAll);
+    setIsDeleteDialogOpen(false);
   };
 
   const handleComplete = () => {
@@ -84,31 +93,40 @@ export function GoalCard({
   };
 
   return (
-    <Card className="w-full hover:shadow-lg transition-shadow duration-300">
-      <GoalHeader
-        title={title}
-        category={category}
-        actions={
-          <GoalActions
-            onEdit={() => onEdit(id)}
-            onDelete={handleDelete}
-            onComplete={handleComplete}
-            isCompleted={status === 'Completed'}
-          />
-        }
+    <>
+      <Card className="w-full hover:shadow-lg transition-shadow duration-300">
+        <GoalHeader
+          title={title}
+          category={category}
+          actions={
+            <GoalActions
+              onEdit={() => onEdit(id)}
+              onDelete={() => setIsDeleteDialogOpen(true)}
+              onComplete={handleComplete}
+              isCompleted={status === 'Completed'}
+            />
+          }
+        />
+        <CardContent>
+          <div className="space-y-4">
+            <GoalProgress progress={progress} />
+            <GoalMetadata
+              deadline={deadline}
+              priority={priority}
+              isRecurring={isRecurring}
+              recurrenceInterval={recurrenceInterval}
+            />
+            <GoalTasks goalId={id} />
+          </div>
+        </CardContent>
+      </Card>
+
+      <DeleteGoalDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDelete}
+        isRecurring={isRecurring || false}
       />
-      <CardContent>
-        <div className="space-y-4">
-          <GoalProgress progress={progress} />
-          <GoalMetadata
-            deadline={deadline}
-            priority={priority}
-            isRecurring={isRecurring}
-            recurrenceInterval={recurrenceInterval}
-          />
-          <GoalTasks goalId={id} />
-        </div>
-      </CardContent>
-    </Card>
+    </>
   );
 }

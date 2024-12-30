@@ -233,7 +233,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      delete_recurring_goal_instances: {
+        Args: {
+          goal_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       goal_status: "Not Started" | "In Progress" | "Completed"
