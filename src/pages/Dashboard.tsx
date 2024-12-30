@@ -9,6 +9,7 @@ import { GoalDialog } from "@/components/GoalDialog";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { GoalFilters } from "@/components/dashboard/GoalFilters";
 import { toast } from "sonner";
+import { isWithinInterval, addDays, addWeeks, addMonths, parseISO } from "date-fns";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -52,6 +53,48 @@ const Dashboard = () => {
     setIsDialogOpen(true);
   };
 
+  const isGoalDueSoon = (goal: any) => {
+    if (!goal.deadline) return false;
+    
+    const today = new Date();
+    const deadlineDate = parseISO(goal.deadline);
+    
+    // For recurring goals, check based on recurrence interval
+    if (goal.is_recurring) {
+      switch (goal.recurrence_interval) {
+        case 'daily':
+          // Check if the deadline is today
+          return isWithinInterval(deadlineDate, {
+            start: today,
+            end: addDays(today, 1)
+          });
+        
+        case 'weekly':
+          // Check if the deadline is within the current week
+          return isWithinInterval(deadlineDate, {
+            start: today,
+            end: addWeeks(today, 1)
+          });
+        
+        case 'monthly':
+          // Check if the deadline is within the current month
+          return isWithinInterval(deadlineDate, {
+            start: today,
+            end: addMonths(today, 1)
+          });
+        
+        default:
+          return false;
+      }
+    }
+    
+    // For non-recurring goals, check if due within 3 days
+    return isWithinInterval(deadlineDate, {
+      start: today,
+      end: addDays(today, 3)
+    });
+  };
+
   const filteredGoals = goals?.filter((goal) => {
     if (priorityFilter !== "all" && goal.priority !== priorityFilter) return false;
     if (categoryFilter !== "all" && goal.category !== categoryFilter) return false;
@@ -80,11 +123,7 @@ const Dashboard = () => {
     if (goal.status === "Completed") return false;
     if (goal.priority === "High") return true;
     if (goal.deadline) {
-      const deadline = new Date(goal.deadline);
-      const today = new Date();
-      const threeDaysFromNow = new Date();
-      threeDaysFromNow.setDate(today.getDate() + 3);
-      return deadline <= threeDaysFromNow;
+      return isGoalDueSoon(goal);
     }
     return false;
   });
@@ -133,7 +172,7 @@ const Dashboard = () => {
               onPriorityChange={setPriorityFilter}
               onCategoryChange={setCategoryFilter}
               onSortChange={setSortBy}
-              categories={[...new Set(goals?.map(goal => goal.category) || [])]}
+              categories={categories}
             />
           </div>
 
@@ -145,7 +184,7 @@ const Dashboard = () => {
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {goals?.map((goal) => (
+              {sortedGoals.map((goal) => (
                 <GoalCard
                   key={goal.id}
                   id={goal.id}
