@@ -75,8 +75,11 @@ export type Database = {
           deadline: string | null
           description: string | null
           id: string
+          is_recurring: boolean | null
+          last_completed_at: string | null
           priority: Database["public"]["Enums"]["priority_level"]
           progress: number
+          recurrence_interval: string | null
           status: Database["public"]["Enums"]["goal_status"]
           title: string
           updated_at: string
@@ -88,8 +91,11 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           id?: string
+          is_recurring?: boolean | null
+          last_completed_at?: string | null
           priority?: Database["public"]["Enums"]["priority_level"]
           progress?: number
+          recurrence_interval?: string | null
           status?: Database["public"]["Enums"]["goal_status"]
           title: string
           updated_at?: string
@@ -101,8 +107,11 @@ export type Database = {
           deadline?: string | null
           description?: string | null
           id?: string
+          is_recurring?: boolean | null
+          last_completed_at?: string | null
           priority?: Database["public"]["Enums"]["priority_level"]
           progress?: number
+          recurrence_interval?: string | null
           status?: Database["public"]["Enums"]["goal_status"]
           title?: string
           updated_at?: string

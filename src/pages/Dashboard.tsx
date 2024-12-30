@@ -3,18 +3,11 @@ import { useNavigate } from "react-router-dom";
 import { useUser } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardStats } from "@/components/DashboardStats";
-import { GoalCard } from "@/components/GoalCard";
-import { Button } from "@/components/ui/button";
-import { Plus, Filter } from "lucide-react";
+import { GoalCard } from "@/components/goal/GoalCard";
 import { supabase } from "@/integrations/supabase/client";
 import { GoalDialog } from "@/components/GoalDialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { GoalFilters } from "@/components/dashboard/GoalFilters";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -95,15 +88,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="mt-2 text-gray-600">Track your goals and progress</p>
-          </div>
-          <Button onClick={handleAddNew} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" /> Add Goal
-          </Button>
-        </div>
+        <DashboardHeader onAddGoal={handleAddNew} />
         
         <div className="mt-8">
           <DashboardStats />
@@ -132,44 +117,15 @@ const Dashboard = () => {
         <div className="mt-12">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
             <h2 className="text-2xl font-semibold">Your Goals</h2>
-            <div className="flex flex-wrap gap-4">
-              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Priority" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Priorities</SelectItem>
-                  <SelectItem value="High">High</SelectItem>
-                  <SelectItem value="Medium">Medium</SelectItem>
-                  <SelectItem value="Low">Low</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="deadline">Deadline</SelectItem>
-                  <SelectItem value="priority">Priority</SelectItem>
-                  <SelectItem value="progress">Progress</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <GoalFilters
+              priorityFilter={priorityFilter}
+              categoryFilter={categoryFilter}
+              sortBy={sortBy}
+              onPriorityChange={setPriorityFilter}
+              onCategoryChange={setCategoryFilter}
+              onSortChange={setSortBy}
+              categories={categories}
+            />
           </div>
 
           {isLoading ? (
