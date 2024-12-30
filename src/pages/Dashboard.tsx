@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { GoalDialog } from "@/components/GoalDialog";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { GoalFilters } from "@/components/dashboard/GoalFilters";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -21,13 +22,18 @@ const Dashboard = () => {
   const { data: goals, isLoading } = useQuery({
     queryKey: ['goals'],
     queryFn: async () => {
+      if (!user) throw new Error('User must be logged in');
       const { data, error } = await supabase
         .from('goals')
         .select('*')
         .order('created_at', { ascending: false });
-      if (error) throw error;
+      if (error) {
+        toast.error('Failed to fetch goals');
+        throw error;
+      }
       return data;
     },
+    enabled: !!user,
   });
 
   useEffect(() => {
@@ -126,19 +132,19 @@ const Dashboard = () => {
               onPriorityChange={setPriorityFilter}
               onCategoryChange={setCategoryFilter}
               onSortChange={setSortBy}
-              categories={categories}
+              categories={[...new Set(goals?.map(goal => goal.category) || [])]}
             />
           </div>
 
           {isLoading ? (
             <div className="text-center text-gray-600">Loading goals...</div>
-          ) : sortedGoals?.length === 0 ? (
+          ) : goals?.length === 0 ? (
             <div className="text-center text-gray-600">
               No goals yet. Click the Add Goal button to get started!
             </div>
           ) : (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {sortedGoals?.map((goal) => (
+              {goals?.map((goal) => (
                 <GoalCard
                   key={goal.id}
                   id={goal.id}

@@ -10,20 +10,12 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser } from "@supabase/auth-helpers-react";
 import { Switch } from "@/components/ui/switch";
+import { GoalFormData, RecurrenceInterval } from "@/types/goals";
 
 interface GoalDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   goalId: string | null;
-}
-
-interface GoalFormData {
-  title: string;
-  category: string;
-  priority: "Low" | "Medium" | "High";
-  deadline: string;
-  is_recurring: boolean;
-  recurrence_interval: "daily" | "weekly" | "monthly" | null;
 }
 
 export function GoalDialog({ open, onOpenChange, goalId }: GoalDialogProps) {
@@ -40,7 +32,7 @@ export function GoalDialog({ open, onOpenChange, goalId }: GoalDialogProps) {
         .from('goals')
         .select('*')
         .eq('id', goalId)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -54,7 +46,7 @@ export function GoalDialog({ open, onOpenChange, goalId }: GoalDialogProps) {
       setValue('priority', goal.priority);
       setValue('deadline', goal.deadline ? new Date(goal.deadline).toISOString().split('T')[0] : '');
       setValue('is_recurring', goal.is_recurring || false);
-      setValue('recurrence_interval', goal.recurrence_interval);
+      setValue('recurrence_interval', goal.recurrence_interval as RecurrenceInterval);
     } else {
       reset();
     }
@@ -187,7 +179,7 @@ export function GoalDialog({ open, onOpenChange, goalId }: GoalDialogProps) {
             <div className="space-y-2">
               <Label htmlFor="recurrence_interval">Recurrence Interval</Label>
               <Select
-                onValueChange={(value) => setValue('recurrence_interval', value as "daily" | "weekly" | "monthly")}
+                onValueChange={(value) => setValue('recurrence_interval', value as RecurrenceInterval)}
                 defaultValue={goal?.recurrence_interval || "weekly"}
               >
                 <SelectTrigger>
