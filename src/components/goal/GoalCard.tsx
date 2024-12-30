@@ -6,6 +6,7 @@ import { GoalTasks } from "./GoalTasks";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { GoalActions } from "./GoalActions";
 
 interface GoalCardProps {
   id: string;
@@ -16,6 +17,7 @@ interface GoalCardProps {
   priority: "High" | "Medium" | "Low";
   isRecurring?: boolean;
   recurrenceInterval?: string | null;
+  status: "Not Started" | "In Progress" | "Completed";
   onEdit: (id: string) => void;
 }
 
@@ -28,6 +30,7 @@ export function GoalCard({
   priority,
   isRecurring,
   recurrenceInterval,
+  status,
   onEdit
 }: GoalCardProps) {
   const queryClient = useQueryClient();
@@ -50,9 +53,33 @@ export function GoalCard({
     },
   });
 
+  const completeGoal = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from('goals')
+        .update({ status: 'Completed' })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      toast.success('Goal marked as completed');
+    },
+    onError: (error) => {
+      toast.error('Failed to complete goal');
+      console.error('Error completing goal:', error);
+    },
+  });
+
   const handleDelete = () => {
     if (window.confirm('Are you sure you want to delete this goal?')) {
       deleteGoal.mutate();
+    }
+  };
+
+  const handleComplete = () => {
+    if (window.confirm('Are you sure you want to mark this goal as completed?')) {
+      completeGoal.mutate();
     }
   };
 
@@ -61,8 +88,14 @@ export function GoalCard({
       <GoalHeader
         title={title}
         category={category}
-        onEdit={() => onEdit(id)}
-        onDelete={handleDelete}
+        actions={
+          <GoalActions
+            onEdit={() => onEdit(id)}
+            onDelete={handleDelete}
+            onComplete={handleComplete}
+            isCompleted={status === 'Completed'}
+          />
+        }
       />
       <CardContent>
         <div className="space-y-4">
