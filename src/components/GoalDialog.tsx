@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUser } from "@supabase/auth-helpers-react";
+import { Switch } from "@/components/ui/switch";
 
 interface GoalDialogProps {
   open: boolean;
@@ -21,12 +22,15 @@ interface GoalFormData {
   category: string;
   priority: "Low" | "Medium" | "High";
   deadline: string;
+  is_recurring: boolean;
+  recurrence_interval: "daily" | "weekly" | "monthly" | null;
 }
 
 export function GoalDialog({ open, onOpenChange, goalId }: GoalDialogProps) {
   const user = useUser();
   const queryClient = useQueryClient();
-  const { register, handleSubmit, reset, setValue } = useForm<GoalFormData>();
+  const { register, handleSubmit, reset, setValue, watch } = useForm<GoalFormData>();
+  const isRecurring = watch('is_recurring');
 
   const { data: goal } = useQuery({
     queryKey: ['goal', goalId],
@@ -49,6 +53,8 @@ export function GoalDialog({ open, onOpenChange, goalId }: GoalDialogProps) {
       setValue('category', goal.category);
       setValue('priority', goal.priority);
       setValue('deadline', goal.deadline ? new Date(goal.deadline).toISOString().split('T')[0] : '');
+      setValue('is_recurring', goal.is_recurring || false);
+      setValue('recurrence_interval', goal.recurrence_interval);
     } else {
       reset();
     }
@@ -64,6 +70,7 @@ export function GoalDialog({ open, onOpenChange, goalId }: GoalDialogProps) {
           ...data,
           user_id: user.id,
           deadline: data.deadline ? new Date(data.deadline).toISOString() : null,
+          status: 'Not Started',
         });
       if (error) throw error;
     },
@@ -166,6 +173,34 @@ export function GoalDialog({ open, onOpenChange, goalId }: GoalDialogProps) {
               {...register('deadline')}
             />
           </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="is_recurring"
+              checked={isRecurring}
+              onCheckedChange={(checked) => setValue('is_recurring', checked)}
+            />
+            <Label htmlFor="is_recurring">Recurring Goal</Label>
+          </div>
+
+          {isRecurring && (
+            <div className="space-y-2">
+              <Label htmlFor="recurrence_interval">Recurrence Interval</Label>
+              <Select
+                onValueChange={(value) => setValue('recurrence_interval', value as "daily" | "weekly" | "monthly")}
+                defaultValue={goal?.recurrence_interval || "weekly"}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select interval" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

@@ -14,10 +14,22 @@ interface GoalCardProps {
   progress: number;
   deadline: string | null;
   priority: "High" | "Medium" | "Low";
+  isRecurring?: boolean;
+  recurrenceInterval?: string | null;
   onEdit: (id: string) => void;
 }
 
-export function GoalCard({ id, title, category, progress, deadline, priority, onEdit }: GoalCardProps) {
+export function GoalCard({
+  id,
+  title,
+  category,
+  progress,
+  deadline,
+  priority,
+  isRecurring,
+  recurrenceInterval,
+  onEdit
+}: GoalCardProps) {
   const queryClient = useQueryClient();
 
   const deleteGoal = useMutation({
@@ -55,7 +67,12 @@ export function GoalCard({ id, title, category, progress, deadline, priority, on
       <CardContent>
         <div className="space-y-4">
           <GoalProgress progress={progress} />
-          <GoalMetadata deadline={deadline} priority={priority} />
+          <GoalMetadata
+            deadline={deadline}
+            priority={priority}
+            isRecurring={isRecurring}
+            recurrenceInterval={recurrenceInterval}
+          />
           <GoalTasks goalId={id} />
         </div>
       </CardContent>

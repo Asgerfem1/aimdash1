@@ -107,6 +107,8 @@ const Dashboard = () => {
                   progress={goal.progress}
                   deadline={goal.deadline}
                   priority={goal.priority}
+                  isRecurring={goal.is_recurring}
+                  recurrenceInterval={goal.recurrence_interval}
                   onEdit={handleEdit}
                 />
               ))}
@@ -145,6 +147,8 @@ const Dashboard = () => {
                   progress={goal.progress}
                   deadline={goal.deadline}
                   priority={goal.priority}
+                  isRecurring={goal.is_recurring}
+                  recurrenceInterval={goal.recurrence_interval}
                   onEdit={handleEdit}
                 />
               ))}
