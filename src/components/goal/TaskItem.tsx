@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowUp, ArrowDown, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,10 +11,6 @@ interface TaskItemProps {
   title: string;
   completed: boolean;
   goalId: string;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  isFirst: boolean;
-  isLast: boolean;
 }
 
 export function TaskItem({
@@ -22,10 +18,6 @@ export function TaskItem({
   title,
   completed,
   goalId,
-  onMoveUp,
-  onMoveDown,
-  isFirst,
-  isLast,
 }: TaskItemProps) {
   const queryClient = useQueryClient();
   const [isHovered, setIsHovered] = useState(false);
@@ -84,26 +76,6 @@ export function TaskItem({
       </span>
       {isHovered && (
         <div className="flex items-center gap-1 absolute right-0 bg-background">
-          {!isFirst && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={onMoveUp}
-            >
-              <ArrowUp className="h-4 w-4" />
-            </Button>
-          )}
-          {!isLast && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={onMoveDown}
-            >
-              <ArrowDown className="h-4 w-4" />
-            </Button>
-          )}
           <Button
             variant="ghost"
             size="icon"

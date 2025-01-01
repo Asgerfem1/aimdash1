@@ -26,7 +26,7 @@ export function DeleteGoalDialog({
 }: DeleteGoalDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent className="relative">
+      <AlertDialogContent className="fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] relative">
         <Button
           variant="ghost"
           size="icon"

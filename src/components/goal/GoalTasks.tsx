@@ -52,38 +52,11 @@ export function GoalTasks({ goalId }: GoalTasksProps) {
     },
   });
 
-  const reorderTask = useMutation({
-    mutationFn: async ({ taskId, newIndex }: { taskId: string; newIndex: number }) => {
-      const { error } = await supabase
-        .from('tasks')
-        .update({ created_at: new Date(Date.now() - newIndex * 1000).toISOString() })
-        .eq('id', taskId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks', goalId] });
-    },
-    onError: (error) => {
-      toast.error('Failed to reorder task');
-      console.error('Error reordering task:', error);
-    },
-  });
-
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
     if (newTaskTitle.trim()) {
       createTask.mutate(newTaskTitle.trim());
     }
-  };
-
-  const handleMoveTask = (currentIndex: number, direction: 'up' | 'down') => {
-    if (!tasks) return;
-    
-    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-    if (newIndex < 0 || newIndex >= tasks.length) return;
-    
-    const task = tasks[currentIndex];
-    reorderTask.mutate({ taskId: task.id, newIndex });
   };
 
   return (
@@ -115,17 +88,13 @@ export function GoalTasks({ goalId }: GoalTasksProps) {
       )}
 
       <div className="space-y-2">
-        {tasks?.map((task, index) => (
+        {tasks?.map((task) => (
           <TaskItem
             key={task.id}
             id={task.id}
             title={task.title}
             completed={task.completed}
             goalId={goalId}
-            onMoveUp={() => handleMoveTask(index, 'up')}
-            onMoveDown={() => handleMoveTask(index, 'down')}
-            isFirst={index === 0}
-            isLast={index === tasks.length - 1}
           />
         ))}
       </div>
