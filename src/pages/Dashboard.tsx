@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@supabase/auth-helpers-react";
+import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 import { DashboardStats } from "@/components/DashboardStats";
 import { GoalCard } from "@/components/goal/GoalCard";
@@ -8,17 +8,31 @@ import { supabase } from "@/integrations/supabase/client";
 import { GoalDialog } from "@/components/GoalDialog";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { GoalFilters } from "@/components/dashboard/GoalFilters";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { isWithinInterval, addDays, addWeeks, addMonths, parseISO } from "date-fns";
+import { LogOut } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const user = useUser();
+  const supabaseClient = useSupabaseClient();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("deadline");
+
+  const handleLogout = async () => {
+    try {
+      await supabaseClient.auth.signOut();
+      toast.success("Logged out successfully");
+      navigate("/");
+    } catch (error) {
+      toast.error("Error logging out");
+      console.error("Logout error:", error);
+    }
+  };
 
   const { data: goals, isLoading } = useQuery({
     queryKey: ['goals'],
@@ -133,7 +147,16 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <DashboardHeader onAddGoal={handleAddNew} />
+        <div className="flex justify-between items-center">
+          <DashboardHeader onAddGoal={handleAddNew} />
+          <Button 
+            variant="destructive" 
+            onClick={handleLogout} 
+            className="flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" /> Logout
+          </Button>
+        </div>
         
         <div className="mt-8">
           <DashboardStats />
