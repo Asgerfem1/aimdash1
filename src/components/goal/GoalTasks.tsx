@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Plus, CheckCircle2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { TaskItem } from "./TaskItem";
 
 interface GoalTasksProps {
   goalId: string;
@@ -52,21 +52,20 @@ export function GoalTasks({ goalId }: GoalTasksProps) {
     },
   });
 
-  const toggleTask = useMutation({
-    mutationFn: async ({ taskId, completed }: { taskId: string; completed: boolean }) => {
+  const reorderTask = useMutation({
+    mutationFn: async ({ taskId, newIndex }: { taskId: string; newIndex: number }) => {
       const { error } = await supabase
         .from('tasks')
-        .update({ completed })
+        .update({ created_at: new Date(Date.now() - newIndex * 1000).toISOString() })
         .eq('id', taskId);
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tasks', goalId] });
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
     },
     onError: (error) => {
-      toast.error('Failed to update task');
-      console.error('Error updating task:', error);
+      toast.error('Failed to reorder task');
+      console.error('Error reordering task:', error);
     },
   });
 
@@ -75,6 +74,16 @@ export function GoalTasks({ goalId }: GoalTasksProps) {
     if (newTaskTitle.trim()) {
       createTask.mutate(newTaskTitle.trim());
     }
+  };
+
+  const handleMoveTask = (currentIndex: number, direction: 'up' | 'down') => {
+    if (!tasks) return;
+    
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= tasks.length) return;
+    
+    const task = tasks[currentIndex];
+    reorderTask.mutate({ taskId: task.id, newIndex });
   };
 
   return (
@@ -106,18 +115,18 @@ export function GoalTasks({ goalId }: GoalTasksProps) {
       )}
 
       <div className="space-y-2">
-        {tasks?.map((task) => (
-          <div key={task.id} className="flex items-center gap-2">
-            <Checkbox
-              checked={task.completed}
-              onCheckedChange={(checked) => {
-                toggleTask.mutate({ taskId: task.id, completed: checked as boolean });
-              }}
-            />
-            <span className={`text-sm ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
-              {task.title}
-            </span>
-          </div>
+        {tasks?.map((task, index) => (
+          <TaskItem
+            key={task.id}
+            id={task.id}
+            title={task.title}
+            completed={task.completed}
+            goalId={goalId}
+            onMoveUp={() => handleMoveTask(index, 'up')}
+            onMoveDown={() => handleMoveTask(index, 'down')}
+            isFirst={index === 0}
+            isLast={index === tasks.length - 1}
+          />
         ))}
       </div>
     </div>
