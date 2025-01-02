@@ -1,5 +1,6 @@
 import { CalendarIcon, Flag, RefreshCw } from "lucide-react";
 import { GoalCompletionHistory } from "./GoalCompletionHistory";
+import { format } from "date-fns";
 
 interface GoalMetadataProps {
   deadline: string | null;
@@ -16,12 +17,16 @@ const priorityColors = {
 };
 
 export function GoalMetadata({ deadline, priority, isRecurring, recurrenceInterval, title }: GoalMetadataProps) {
+  const formattedDeadline = deadline 
+    ? format(new Date(deadline), 'MMM d, yyyy')
+    : 'No deadline';
+
   return (
     <div className="flex flex-col gap-2 text-sm text-muted-foreground">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <CalendarIcon className="h-4 w-4" />
-          <span>{deadline ? new Date(deadline).toLocaleDateString() : 'No deadline'}</span>
+          <span>{formattedDeadline}</span>
         </div>
         <div className="flex items-center gap-2">
           <Flag className={`h-4 w-4 ${priorityColors[priority]}`} />
