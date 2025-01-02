@@ -14,7 +14,7 @@ export function GoalCompletionHistory({ goalTitle, recurrenceInterval }: GoalCom
   const today = new Date();
 
   const { data: completions } = useQuery({
-    queryKey: ['goal-completions', goalTitle],
+    queryKey: ['goal-completions', goalTitle, recurrenceInterval],
     queryFn: async () => {
       const startDate = recurrenceInterval === 'monthly' 
         ? subYears(today, 1)

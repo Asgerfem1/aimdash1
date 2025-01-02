@@ -2,10 +2,10 @@ import { useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { TaskItem } from "./TaskItem";
 
 interface GoalTasksProps {
   goalId: string;
@@ -52,6 +52,24 @@ export function GoalTasks({ goalId }: GoalTasksProps) {
     },
   });
 
+  const toggleTask = useMutation({
+    mutationFn: async ({ taskId, completed }: { taskId: string; completed: boolean }) => {
+      const { error } = await supabase
+        .from('tasks')
+        .update({ completed })
+        .eq('id', taskId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks', goalId] });
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+    },
+    onError: (error) => {
+      toast.error('Failed to update task');
+      console.error('Error updating task:', error);
+    },
+  });
+
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
     if (newTaskTitle.trim()) {
@@ -89,13 +107,17 @@ export function GoalTasks({ goalId }: GoalTasksProps) {
 
       <div className="space-y-2">
         {tasks?.map((task) => (
-          <TaskItem
-            key={task.id}
-            id={task.id}
-            title={task.title}
-            completed={task.completed}
-            goalId={goalId}
-          />
+          <div key={task.id} className="flex items-center gap-2">
+            <Checkbox
+              checked={task.completed}
+              onCheckedChange={(checked) => {
+                toggleTask.mutate({ taskId: task.id, completed: checked as boolean });
+              }}
+            />
+            <span className={`text-sm ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+              {task.title}
+            </span>
+          </div>
         ))}
       </div>
     </div>
