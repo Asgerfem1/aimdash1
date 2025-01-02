@@ -133,7 +133,7 @@ const Index = () => {
           <Card className="max-w-md mx-auto border-none shadow-lg">
             <CardContent className="p-6">
               <h3 className="text-2xl font-bold mb-2">Lifetime Access</h3>
-              <p className="text-4xl font-bold text-primary-700 mb-4">$49</p>
+              <p className="text-4xl font-bold text-primary-700 mb-4">$39</p>
               <ul className="text-left space-y-4 mb-6">
                 <li className="flex items-center">
                   <CheckCircle2 className="text-primary mr-2" size={20} />
