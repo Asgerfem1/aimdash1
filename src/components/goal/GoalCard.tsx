@@ -115,6 +115,7 @@ export function GoalCard({
               priority={priority}
               isRecurring={isRecurring}
               recurrenceInterval={recurrenceInterval}
+              title={title}
             />
             <GoalTasks goalId={id} />
           </div>
