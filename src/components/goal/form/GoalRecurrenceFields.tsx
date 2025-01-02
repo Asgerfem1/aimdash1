@@ -14,7 +14,7 @@ export function GoalRecurrenceFields({
   isRecurring,
   onRecurringChange,
   onIntervalChange,
-  defaultInterval = "weekly"
+  defaultInterval = "daily"
 }: GoalRecurrenceFieldsProps) {
   return (
     <>
