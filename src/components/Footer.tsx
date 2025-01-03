@@ -1,6 +1,13 @@
 import { Twitter } from "lucide-react";
 
 export const Footer = () => {
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <footer className="bg-gray-900 text-white py-12">
       <div className="container mx-auto max-w-6xl px-4">
@@ -13,8 +20,22 @@ export const Footer = () => {
           <div className="space-y-4">
             <h4 className="text-lg font-outfit font-semibold">Product</h4>
             <ul className="space-y-2 text-gray-400">
-              <li>Features</li>
-              <li>Pricing</li>
+              <li>
+                <button 
+                  onClick={() => scrollToSection('how-it-works')}
+                  className="hover:text-white transition-colors"
+                >
+                  Features
+                </button>
+              </li>
+              <li>
+                <button 
+                  onClick={() => scrollToSection('pricing')}
+                  className="hover:text-white transition-colors"
+                >
+                  Pricing
+                </button>
+              </li>
             </ul>
           </div>
           
