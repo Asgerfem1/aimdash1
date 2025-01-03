@@ -34,21 +34,37 @@ export const Navigation = ({ purchaseStatus }: NavigationProps) => {
 
     if (!purchaseStatus?.hasPurchased) {
       try {
+        console.log('Starting checkout process...');
+        console.log('User email:', user.email);
+        
+        if (!session?.access_token) {
+          throw new Error('No valid session found');
+        }
+
         const response = await supabase.functions.invoke('create-checkout', {
           body: {},
           headers: {
-            Authorization: `Bearer ${session?.access_token}`,
+            Authorization: `Bearer ${session.access_token}`,
             'Content-Type': 'application/json',
-            'X-Customer-Email': user.email
+            'X-Customer-Email': user.email || ''
           }
         });
         
-        if (response.error) throw new Error(response.error.message);
-        const { url } = response.data;
-        
-        if (url) {
-          window.location.href = url;
+        console.log('Checkout response:', response);
+
+        if (response.error) {
+          console.error('Checkout error:', response.error);
+          throw new Error(response.error.message);
         }
+        
+        const { data } = response;
+        
+        if (!data?.url) {
+          throw new Error('No checkout URL received');
+        }
+
+        console.log('Redirecting to:', data.url);
+        window.location.href = data.url;
       } catch (error) {
         console.error('Error:', error);
         toast({

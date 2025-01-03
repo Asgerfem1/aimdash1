@@ -3,7 +3,7 @@ import Stripe from 'https://esm.sh/stripe@14.21.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-customer-email',
 };
 
 serve(async (req) => {
@@ -28,29 +28,35 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    // Create or retrieve customer
-    const email = req.headers.get('X-Customer-Email');
-    if (!email) {
+    // Get customer email from headers
+    const customerEmail = req.headers.get('X-Customer-Email');
+    console.log('Customer email:', customerEmail);
+
+    if (!customerEmail) {
       throw new Error('Customer email not found');
     }
 
+    // Create or retrieve customer
     let customer;
     const customers = await stripe.customers.list({
-      email: email,
+      email: customerEmail,
       limit: 1,
     });
 
     if (customers.data.length > 0) {
       customer = customers.data[0];
+      console.log('Found existing customer:', customer.id);
     } else {
       customer = await stripe.customers.create({
-        email: email,
+        email: customerEmail,
       });
+      console.log('Created new customer:', customer.id);
     }
 
     // Get origin for success/cancel URLs
     const origin = req.headers.get('origin') || 'http://localhost:5173';
 
+    console.log('Creating checkout session...');
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customer.id,
@@ -58,8 +64,11 @@ serve(async (req) => {
         {
           price_data: {
             currency: 'usd',
-            product: 'prod_PJwJCBGPzEbBXx',
-            unit_amount: 2400, // $24.00
+            product_data: {
+              name: 'AimDash Lifetime Access',
+              description: 'One-time payment for all features',
+            },
+            unit_amount: 2400,
           },
           quantity: 1,
         },
@@ -68,6 +77,8 @@ serve(async (req) => {
       success_url: `${origin}/?payment=success`,
       cancel_url: `${origin}/`,
     });
+
+    console.log('Checkout session created:', session.id);
 
     return new Response(
       JSON.stringify({ url: session.url }),

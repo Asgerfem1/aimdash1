@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useUser, useSession } from "@supabase/auth-helpers-react";
@@ -44,7 +44,8 @@ export const PricingSection = ({ purchaseStatus }: PricingSectionProps) => {
     }
 
     try {
-      console.log('Initiating checkout...');
+      console.log('Starting checkout process from pricing section...');
+      console.log('User email:', user.email);
       
       if (!session?.access_token) {
         throw new Error('No valid session found');
@@ -54,26 +55,29 @@ export const PricingSection = ({ purchaseStatus }: PricingSectionProps) => {
         body: {},
         headers: {
           Authorization: `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'X-Customer-Email': user.email || ''
         }
       });
+
+      console.log('Checkout response:', response);
 
       if (response.error) {
         console.error('Checkout error:', response.error);
         throw new Error(response.error.message);
       }
       
-      const { url } = response.data;
+      const { data } = response;
       
-      if (!url) {
+      if (!data?.url) {
         throw new Error('No checkout URL received');
       }
 
-      console.log('Redirecting to checkout URL:', url);
-      window.location.href = url;
+      console.log('Redirecting to:', data.url);
+      window.location.href = data.url;
     } catch (error) {
       console.error('Error:', error);
-      toast.error(error.message || "Failed to initiate checkout. Please try again.");
+      toast.error("Failed to initiate checkout. Please try again.");
     }
   };
 
