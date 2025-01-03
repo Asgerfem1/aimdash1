@@ -24,20 +24,20 @@ serve(async (req) => {
       throw new Error('No authorization header')
     }
 
-    // Get the current session using the token
-    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession()
+    // Get the user from the token
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
     
-    if (sessionError) {
-      console.error('Session error:', sessionError)
-      throw sessionError
+    if (userError) {
+      console.error('Error getting user:', userError)
+      throw userError
     }
 
-    if (!session?.user) {
-      console.error('No user in session')
+    if (!user) {
+      console.error('No user found')
       throw new Error('No user found')
     }
 
-    const user = session.user
     if (!user.email) {
       console.error('No email found for user:', user.id)
       throw new Error('No email found')
