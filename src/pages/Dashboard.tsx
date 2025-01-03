@@ -31,7 +31,7 @@ const Dashboard = () => {
     }
 
     if (!isLoading && !purchaseStatus?.hasPurchased) {
-      toast.error("Please purchase a subscription to access the dashboard");
+      toast.error("Please purchase AimDash to access the dashboard");
       navigate("/");
     }
   }, [user, navigate, purchaseStatus, isLoading]);
