@@ -28,32 +28,47 @@ serve(async (req) => {
       throw new Error('No email found')
     }
 
+    console.log('Checking purchase status for email:', email)
+
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     })
 
+    // First find the customer
     const customers = await stripe.customers.list({
       email: email,
       limit: 1
     })
 
+    console.log('Found customers:', customers.data.length)
+
     if (customers.data.length === 0) {
+      console.log('No customer found')
       return new Response(
         JSON.stringify({ hasPurchased: false }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Check for successful payments
-    const payments = await stripe.paymentIntents.list({
-      customer: customers.data[0].id,
+    const customerId = customers.data[0].id
+    console.log('Checking payments for customer:', customerId)
+
+    // Check for successful payments using PaymentIntents
+    const paymentIntents = await stripe.paymentIntents.list({
+      customer: customerId,
       limit: 100
     })
 
-    const hasPurchased = payments.data.some(payment => 
-      payment.status === 'succeeded' && 
-      payment.amount > 0
-    )
+    console.log('Found payment intents:', paymentIntents.data.length)
+
+    // Check if there's any successful payment
+    const hasPurchased = paymentIntents.data.some(payment => {
+      const isSuccessful = payment.status === 'succeeded' && payment.amount > 0
+      console.log('Payment:', payment.id, 'Status:', payment.status, 'Amount:', payment.amount, 'Is successful:', isSuccessful)
+      return isSuccessful
+    })
+
+    console.log('Has purchased:', hasPurchased)
 
     return new Response(
       JSON.stringify({ hasPurchased }),
