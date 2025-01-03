@@ -5,6 +5,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ const Dashboard = () => {
     }
 
     if (!isLoading && !purchaseStatus?.hasPurchased) {
+      toast.error("Please purchase a subscription to access the dashboard");
       navigate("/");
     }
   }, [user, navigate, purchaseStatus, isLoading]);

@@ -18,7 +18,6 @@ const Index = () => {
     queryKey: ['purchaseStatus'],
     queryFn: async () => {
       if (!user) return { hasPurchased: false };
-      const { data: { session } } = await supabase.auth.getSession();
       const response = await supabase.functions.invoke('check-purchase', {
         body: {},
       });
@@ -61,15 +60,18 @@ const Index = () => {
     ],
   };
 
-  const handleCheckout = async () => {
+  const handleAction = async () => {
     if (!user) {
       navigate("/signup");
       return;
     }
 
+    if (purchaseStatus?.hasPurchased) {
+      navigate("/dashboard");
+      return;
+    }
+
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
       const response = await supabase.functions.invoke('create-checkout', {
         body: {},
       });
@@ -138,9 +140,9 @@ const Index = () => {
                 </ul>
                 <Button 
                   className="w-full"
-                  onClick={handleCheckout}
+                  onClick={handleAction}
                 >
-                  {user ? "Buy Now" : "Sign Up"}
+                  {!user ? "Sign Up" : purchaseStatus?.hasPurchased ? "Go to Dashboard" : "Buy Now"}
                 </Button>
               </CardContent>
             </Card>
@@ -159,9 +161,9 @@ const Index = () => {
           <Button 
             size="lg" 
             className="text-lg px-8"
-            onClick={handleCheckout}
+            onClick={handleAction}
           >
-            {user ? (purchaseStatus?.hasPurchased ? "Go to Dashboard" : "Buy Now") : "Sign Up"} <ArrowRight className="ml-2" />
+            {!user ? "Sign Up" : purchaseStatus?.hasPurchased ? "Go to Dashboard" : "Buy Now"} <ArrowRight className="ml-2" />
           </Button>
         </div>
       </section>
