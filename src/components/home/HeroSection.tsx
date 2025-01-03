@@ -3,21 +3,9 @@ import { ArrowRight, CheckCircle2, BarChart3, ChartLine, ChartPie } from "lucide
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@supabase/auth-helpers-react";
 
-interface HeroSectionProps {
-  purchaseStatus?: {
-    hasPurchased: boolean;
-  };
-}
-
-export const HeroSection = ({ purchaseStatus }: HeroSectionProps) => {
+export const HeroSection = () => {
   const navigate = useNavigate();
   const user = useUser();
-
-  const getButtonText = () => {
-    if (!user) return "Get Started";
-    if (purchaseStatus?.hasPurchased) return "Go to Dashboard";
-    return "Get Started";
-  };
 
   return (
     <section className="relative bg-gradient-to-b from-primary-100 to-white pt-32 pb-20 px-4 md:pt-40 overflow-hidden">
@@ -57,7 +45,7 @@ export const HeroSection = ({ purchaseStatus }: HeroSectionProps) => {
             className="text-lg px-8 font-outfit"
             onClick={() => navigate(user ? "/dashboard" : "/signup")}
           >
-            {getButtonText()} <ArrowRight className="ml-2" />
+            Get Started <ArrowRight className="ml-2" />
           </Button>
         </div>
       </div>

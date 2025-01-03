@@ -1,88 +1,31 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
-import { useState } from "react";
-import { useSupabaseClient, useUser, useSession } from "@supabase/auth-helpers-react";
-import { toast } from "@/hooks/use-toast";
-import { NavigationLinks } from "./navigation/NavigationLinks";
-import { MobileMenu } from "./navigation/MobileMenu";
+import { useState, useEffect } from "react";
+import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 
-interface NavigationProps {
-  purchaseStatus?: {
-    hasPurchased: boolean;
-  };
-}
-
-export const Navigation = ({ purchaseStatus }: NavigationProps) => {
+export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const supabase = useSupabaseClient();
   const user = useUser();
-  const session = useSession();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
   };
 
-  const handleDashboardClick = async () => {
-    if (!user) {
-      navigate("/signup");
-      return;
-    }
-
-    if (!purchaseStatus?.hasPurchased) {
-      try {
-        console.log('Starting checkout process...');
-        console.log('User email:', user.email);
-        
-        if (!session?.access_token) {
-          throw new Error('No valid session found');
-        }
-
-        const response = await supabase.functions.invoke('create-checkout', {
-          body: {},
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
-            'X-Customer-Email': user.email || ''
-          }
-        });
-        
-        console.log('Checkout response:', response);
-
-        if (response.error) {
-          console.error('Checkout error:', response.error);
-          throw new Error(response.error.message);
-        }
-        
-        const { data } = response;
-        
-        if (!data?.url) {
-          throw new Error('No checkout URL received');
-        }
-
-        console.log('Redirecting to:', data.url);
-        window.location.href = data.url;
-      } catch (error) {
-        console.error('Error:', error);
-        toast({
-          title: "Error",
-          description: "Failed to initiate checkout. Please try again.",
-          variant: "destructive",
-        });
-      }
-      return;
-    }
-
-    navigate("/dashboard");
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
   };
 
   const scrollToSection = (sectionId: string) => {
+    // If not on the index page, navigate to index first
     if (location.pathname !== "/") {
       navigate("/");
       
+      // Wait for navigation to complete before scrolling
       setTimeout(() => {
         const element = document.getElementById(sectionId);
         if (element) {
@@ -90,12 +33,14 @@ export const Navigation = ({ purchaseStatus }: NavigationProps) => {
         }
       }, 100);
     } else {
+      // If already on index page, scroll directly
       const element = document.getElementById(sectionId);
       if (element) {
         element.scrollIntoView({ behavior: "smooth" });
       }
     }
     
+    // Close mobile menu if open
     setIsMenuOpen(false);
   };
 
@@ -111,32 +56,107 @@ export const Navigation = ({ purchaseStatus }: NavigationProps) => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <NavigationLinks
-              isLoggedIn={!!user}
-              hasPurchased={!!purchaseStatus?.hasPurchased}
-              onScrollToSection={scrollToSection}
-              onLogout={handleLogout}
-              onDashboardClick={handleDashboardClick}
-            />
+            <button 
+              onClick={() => scrollToSection('how-it-works')} 
+              className="text-gray-600 hover:text-primary"
+            >
+              How It Works
+            </button>
+            <button 
+              onClick={() => scrollToSection('pricing')} 
+              className="text-gray-600 hover:text-primary"
+            >
+              Pricing
+            </button>
+            {user ? (
+              <>
+                <Button onClick={() => navigate("/dashboard")}>Dashboard</Button>
+                <Button variant="outline" onClick={handleLogout}>
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" onClick={() => navigate("/login")}>
+                  Login
+                </Button>
+                <Button onClick={() => navigate("/signup")}>Sign Up</Button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            <Button variant="ghost" size="icon" onClick={toggleMenu}>
               <Menu className="h-6 w-6" />
             </Button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
-        <MobileMenu
-          isOpen={isMenuOpen}
-          isLoggedIn={!!user}
-          hasPurchased={!!purchaseStatus?.hasPurchased}
-          onScrollToSection={scrollToSection}
-          onLogout={handleLogout}
-          onDashboardClick={handleDashboardClick}
-        />
+        {isMenuOpen && (
+          <div className="md:hidden py-4 animate-fade-in">
+            <div className="flex flex-col space-y-4">
+              <button
+                onClick={() => scrollToSection('how-it-works')}
+                className="text-gray-600 hover:text-primary px-4 py-2 text-left"
+              >
+                How It Works
+              </button>
+              <button
+                onClick={() => scrollToSection('pricing')}
+                className="text-gray-600 hover:text-primary px-4 py-2 text-left"
+              >
+                Pricing
+              </button>
+              {user ? (
+                <>
+                  <Button
+                    className="justify-start"
+                    onClick={() => {
+                      navigate("/dashboard");
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    Dashboard
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="justify-start"
+                    onClick={() => {
+                      handleLogout();
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    className="justify-start"
+                    onClick={() => {
+                      navigate("/login");
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    Login
+                  </Button>
+                  <Button
+                    className="justify-start"
+                    onClick={() => {
+                      navigate("/signup");
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    Sign Up
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );
