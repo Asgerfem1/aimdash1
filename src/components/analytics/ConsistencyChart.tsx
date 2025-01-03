@@ -1,9 +1,19 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { startOfWeek, endOfWeek, eachDayOfInterval, format, isWithinInterval, parseISO } from 'date-fns';
+import { Priority } from "@/types/goals";
 
 interface ConsistencyChartProps {
   goals: any[];
+}
+
+// Define the shape of our chart data
+interface DayData {
+  day: string;
+  High: number;
+  Medium: number;
+  Low: number;
+  [key: string]: string | number; // Allow string indexing for dynamic priority access
 }
 
 export function ConsistencyChart({ goals }: ConsistencyChartProps) {
@@ -14,7 +24,7 @@ export function ConsistencyChart({ goals }: ConsistencyChartProps) {
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
   
   const data = weekDays.map(day => {
-    const completedGoals = {
+    const completedGoals: DayData = {
       day: format(day, 'EEE'),
       High: 0,
       Medium: 0,
@@ -28,7 +38,7 @@ export function ConsistencyChart({ goals }: ConsistencyChartProps) {
         start: day,
         end: new Date(day.getTime() + 24 * 60 * 60 * 1000 - 1),
       })) {
-        completedGoals[goal.priority as keyof typeof completedGoals] += 1;
+        completedGoals[goal.priority as Priority] += 1;
       }
     });
 
