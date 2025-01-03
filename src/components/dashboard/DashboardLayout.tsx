@@ -17,18 +17,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="flex min-h-screen w-full">
         {/* Desktop Sidebar */}
         <div className="hidden lg:flex">
-          <Sidebar className="w-64 border-r">
-            <div className="space-y-2 py-4">
+          <Sidebar className="border-r">
+            <div className="space-y-1 py-2 px-2">
               <Button
                 variant={selectedView === 'goals' ? 'default' : 'ghost'}
-                className="w-full justify-start"
+                className="w-full justify-start text-sm font-medium"
                 onClick={() => setSelectedView('goals')}
               >
                 Goals
               </Button>
               <Button
                 variant={selectedView === 'analytics' ? 'default' : 'ghost'}
-                className="w-full justify-start"
+                className="w-full justify-start text-sm font-medium"
                 onClick={() => setSelectedView('analytics')}
               >
                 Analytics
@@ -41,21 +41,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <Sheet>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" className="lg:hidden">
-              <Layout className="h-6 w-6" />
+              <Layout className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-64">
-            <div className="space-y-2 py-4">
+          <SheetContent side="left" className="w-64 p-0">
+            <div className="space-y-1 py-2 px-2">
               <Button
                 variant={selectedView === 'goals' ? 'default' : 'ghost'}
-                className="w-full justify-start"
+                className="w-full justify-start text-sm font-medium"
                 onClick={() => setSelectedView('goals')}
               >
                 Goals
               </Button>
               <Button
                 variant={selectedView === 'analytics' ? 'default' : 'ghost'}
-                className="w-full justify-start"
+                className="w-full justify-start text-sm font-medium"
                 onClick={() => setSelectedView('analytics')}
               >
                 Analytics
