@@ -12,9 +12,16 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
-  const supabaseClient = createClient(
+  // Initialize Supabase client with service role key for admin operations
+  const supabaseAdmin = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    }
   )
 
   try {
@@ -24,9 +31,11 @@ serve(async (req) => {
       throw new Error('No authorization header')
     }
 
-    // Get the user from the token
+    // Get the JWT token
     const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
+    
+    // Get user data using the admin client
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token)
     
     if (userError) {
       console.error('Error getting user:', userError)
