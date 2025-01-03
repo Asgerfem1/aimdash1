@@ -18,16 +18,29 @@ serve(async (req) => {
   )
 
   try {
+    console.log('Starting checkout process...');
+    
     // Get the session or user object
     const authHeader = req.headers.get('Authorization')!
+    console.log('Auth header present:', !!authHeader);
+    
     const token = authHeader.replace('Bearer ', '')
-    const { data } = await supabaseClient.auth.getUser(token)
+    const { data, error: userError } = await supabaseClient.auth.getUser(token)
+    
+    if (userError) {
+      console.error('Error getting user:', userError);
+      throw userError;
+    }
+    
     const user = data.user
     const email = user?.email
 
     if (!email) {
+      console.error('No email found for user');
       throw new Error('No email found')
     }
+
+    console.log('User email found:', email);
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
@@ -49,11 +62,11 @@ serve(async (req) => {
       customer_email: customer_id ? undefined : email,
       line_items: [
         {
-          price: 'price_1OxVqkKXnj3mXxLqoWBHHWxP', // Replace with your actual price ID from the Stripe dashboard
+          price: 'price_1OxVqkKXnj3mXxLqoWBHHWxP',
           quantity: 1,
         },
       ],
-      mode: 'payment', // One-time payment
+      mode: 'payment',
       success_url: `${req.headers.get('origin')}/dashboard`,
       cancel_url: `${req.headers.get('origin')}/`,
     })
@@ -67,7 +80,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
-    console.error('Error creating payment session:', error)
+    console.error('Error in checkout process:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

@@ -53,27 +53,39 @@ const Index = () => {
     }
 
     try {
+      console.log('Starting checkout process...');
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session?.access_token) {
+        console.error('No session found');
         throw new Error("No session found");
       }
 
+      console.log('Invoking checkout function...');
       const response = await supabase.functions.invoke('create-checkout', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
 
-      if (response.error) throw new Error(response.error.message);
-      if (!response.data?.url) throw new Error("No checkout URL returned");
+      console.log('Checkout response:', response);
+
+      if (response.error) {
+        console.error('Checkout error:', response.error);
+        throw new Error(response.error.message);
+      }
+      
+      if (!response.data?.url) {
+        console.error('No checkout URL returned');
+        throw new Error("No checkout URL returned");
+      }
 
       window.location.href = response.data.url;
     } catch (error) {
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: "Failed to initiate checkout. Please try again.",
+        description: `Failed to initiate checkout: ${error.message}`,
         variant: "destructive",
       });
     }
