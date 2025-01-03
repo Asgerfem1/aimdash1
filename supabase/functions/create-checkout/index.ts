@@ -33,6 +33,19 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     })
 
+    // First, get the prices for the product
+    const prices = await stripe.prices.list({
+      product: 'prod_RWKPd5xKnMRlbr',
+      active: true,
+      limit: 1,
+    });
+
+    if (prices.data.length === 0) {
+      throw new Error('No active price found for this product');
+    }
+
+    const priceId = prices.data[0].id;
+
     const customers = await stripe.customers.list({
       email: email,
       limit: 1
@@ -49,11 +62,11 @@ serve(async (req) => {
       customer_email: customer_id ? undefined : email,
       line_items: [
         {
-          price: 'price_placeholder', // Replace with your actual price ID from Stripe
+          price: priceId,
           quantity: 1,
         },
       ],
-      mode: 'payment', // One-time payment
+      mode: 'payment',
       success_url: `${req.headers.get('origin')}/dashboard`,
       cancel_url: `${req.headers.get('origin')}/`,
     })
