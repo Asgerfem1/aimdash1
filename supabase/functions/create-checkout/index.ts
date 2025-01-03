@@ -32,9 +32,9 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     })
 
-    // Get the prices for the new product
+    // Get the prices for the product
     const prices = await stripe.prices.list({
-      product: 'prod_RWKzPGxzvL9Neb',
+      product: 'prod_PJwJCBGPzEbBXx',  // Updated product ID
       active: true,
       limit: 1,
     });

@@ -117,7 +117,7 @@ serve(async (req) => {
     const hasSuccessfulPayment = payments.data.some(payment => {
       console.log('Payment:', payment.id, 'Status:', payment.status, 'Product:', payment.metadata.product_id)
       return payment.status === 'succeeded' && 
-             payment.metadata.product_id === 'prod_RWKzPGxzvL9Neb'
+             payment.metadata.product_id === 'prod_PJwJCBGPzEbBXx'  // Updated product ID
     })
 
     console.log('Has purchased:', hasSuccessfulPayment)
