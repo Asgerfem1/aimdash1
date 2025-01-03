@@ -18,7 +18,6 @@ serve(async (req) => {
   )
 
   try {
-    // Get the session or user object
     const authHeader = req.headers.get('Authorization')!
     const token = authHeader.replace('Bearer ', '')
     const { data } = await supabaseClient.auth.getUser(token)
@@ -54,6 +53,27 @@ serve(async (req) => {
     let customer_id = undefined
     if (customers.data.length > 0) {
       customer_id = customers.data[0].id
+      
+      // Check if the customer has already made a successful payment
+      const payments = await stripe.paymentIntents.list({
+        customer: customer_id,
+        limit: 100
+      })
+
+      const hasSuccessfulPayment = payments.data.some(payment => 
+        payment.status === 'succeeded' && 
+        payment.amount > 0
+      )
+
+      if (hasSuccessfulPayment) {
+        return new Response(
+          JSON.stringify({ error: "Already purchased" }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 400,
+          }
+        )
+      }
     }
 
     console.log('Creating payment session...')
@@ -67,7 +87,7 @@ serve(async (req) => {
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/dashboard`,
+      success_url: `${req.headers.get('origin')}/dashboard?payment=success`,
       cancel_url: `${req.headers.get('origin')}/`,
     })
 
