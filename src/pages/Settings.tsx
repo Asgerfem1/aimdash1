@@ -5,17 +5,28 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useTheme } from "@/hooks/use-theme";
+import { useToast } from "@/components/ui/use-toast";
 
 const Settings = () => {
   const navigate = useNavigate();
   const user = useUser();
   const { theme, setTheme } = useTheme();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!user) {
       navigate("/login");
     }
   }, [user, navigate]);
+
+  const handleThemeChange = (checked: boolean) => {
+    const newTheme = checked ? "dark" : "light";
+    setTheme(newTheme);
+    toast({
+      title: "Theme updated",
+      description: `Theme has been set to ${newTheme} mode`,
+    });
+  };
 
   if (!user) return null;
 
@@ -40,7 +51,7 @@ const Settings = () => {
             <Switch
               id="dark-mode"
               checked={theme === "dark"}
-              onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
+              onCheckedChange={handleThemeChange}
             />
           </div>
         </div>
