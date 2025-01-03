@@ -18,17 +18,31 @@ serve(async (req) => {
   )
 
   try {
-    const authHeader = req.headers.get('Authorization')!
-    const token = authHeader.replace('Bearer ', '')
-    const { data } = await supabaseClient.auth.getUser(token)
-    const user = data.user
-    const email = user?.email
+    // Get the user's session
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      throw new Error('No authorization header')
+    }
 
-    if (!email) {
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
+    
+    if (userError) {
+      console.error('Error getting user:', userError)
+      throw userError
+    }
+
+    if (!user) {
+      console.error('No user found')
+      throw new Error('No user found')
+    }
+
+    if (!user.email) {
+      console.error('No email found for user:', user.id)
       throw new Error('No email found')
     }
 
-    console.log('Checking purchase status for email:', email)
+    console.log('Checking purchase status for user:', user.id, 'email:', user.email)
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
@@ -36,14 +50,14 @@ serve(async (req) => {
 
     // Find the customer
     const customers = await stripe.customers.list({
-      email: email,
+      email: user.email,
       limit: 1
     })
 
     console.log('Found customers:', customers.data.length)
 
     if (customers.data.length === 0) {
-      console.log('No customer found')
+      console.log('No customer found for email:', user.email)
       return new Response(
         JSON.stringify({ hasPurchased: false }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
