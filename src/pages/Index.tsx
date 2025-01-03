@@ -35,14 +35,14 @@ const Index = () => {
     description: "One-time payment for all features",
     features: [
       "Unlimited goals",
-      "Advanced analytics",
-      "Priority support",
+      "Goal progress tracking",
+      "Task management",
+      "Priority levels",
+      "Recurring goals",
+      "Visual analytics",
+      "Progress notifications",
       "Custom categories",
-      "Goal sharing",
-      "Team collaboration",
-      "Goal delegation",
-      "Team analytics",
-      "Admin controls",
+      "Team collaboration"
     ],
   };
 
