@@ -103,7 +103,7 @@ const Index = () => {
   return (
     <div className="min-h-screen font-outfit">
       <Navigation purchaseStatus={purchaseStatus} />
-      <HeroSection />
+      <HeroSection purchaseStatus={purchaseStatus} />
 
       {/* Features Section */}
       <section id="how-it-works" className="py-20 px-4 bg-white">
