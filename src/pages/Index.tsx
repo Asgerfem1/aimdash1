@@ -31,7 +31,8 @@ const Index = () => {
           body: {},
           headers: {
             Authorization: `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-Customer-Id': user.id
           }
         });
         
@@ -51,7 +52,6 @@ const Index = () => {
     retry: 1
   });
 
-  // Check payment status and refetch purchase status
   React.useEffect(() => {
     if (paymentStatus === 'success') {
       refetch();

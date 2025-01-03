@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { useState } from "react";
-import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { useSupabaseClient, useUser, useSession } from "@supabase/auth-helpers-react";
 import { toast } from "@/hooks/use-toast";
 import { NavigationLinks } from "./navigation/NavigationLinks";
 import { MobileMenu } from "./navigation/MobileMenu";
@@ -19,6 +19,7 @@ export const Navigation = ({ purchaseStatus }: NavigationProps) => {
   const location = useLocation();
   const supabase = useSupabaseClient();
   const user = useUser();
+  const session = useSession();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -35,6 +36,11 @@ export const Navigation = ({ purchaseStatus }: NavigationProps) => {
       try {
         const response = await supabase.functions.invoke('create-checkout', {
           body: {},
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            'Content-Type': 'application/json',
+            'X-Customer-Email': user.email
+          }
         });
         
         if (response.error) throw new Error(response.error.message);
