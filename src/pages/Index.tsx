@@ -41,8 +41,7 @@ const Index = () => {
       "Recurring goals",
       "Visual analytics",
       "Progress notifications",
-      "Custom categories",
-      "Team collaboration"
+      "Custom categories"
     ],
   };
 

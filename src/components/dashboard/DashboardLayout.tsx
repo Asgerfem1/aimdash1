@@ -1,42 +1,70 @@
+import { useState } from "react";
+import { Layout } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { toast } from "sonner";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sidebar } from "@/components/ui/sidebar";
 
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const navigate = useNavigate();
-  const supabaseClient = useSupabaseClient();
+interface DashboardLayoutProps {
+  children: React.ReactNode;
+}
 
-  const handleLogout = async () => {
-    try {
-      await supabaseClient.auth.signOut();
-      toast.success("Logged out successfully");
-      navigate("/");
-    } catch (error) {
-      toast.error("Error logging out");
-      console.error("Logout error:", error);
-    }
-  };
+export function DashboardLayout({ children }: DashboardLayoutProps) {
+  const [selectedView, setSelectedView] = useState<'goals' | 'analytics'>('goals');
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="border-b bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-end py-2">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={handleLogout} 
-              className="flex items-center gap-2"
+    <div className="flex min-h-screen">
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex">
+        <Sidebar className="w-64 border-r">
+          <div className="space-y-2 py-4">
+            <Button
+              variant={selectedView === 'goals' ? 'default' : 'ghost'}
+              className="w-full justify-start"
+              onClick={() => setSelectedView('goals')}
             >
-              <LogOut className="h-4 w-4" /> Logout
+              Goals
+            </Button>
+            <Button
+              variant={selectedView === 'analytics' ? 'default' : 'ghost'}
+              className="w-full justify-start"
+              onClick={() => setSelectedView('analytics')}
+            >
+              Analytics
             </Button>
           </div>
-        </div>
+        </Sidebar>
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
+
+      {/* Mobile Sidebar */}
+      <Sheet>
+        <SheetTrigger asChild>
+          <Button variant="ghost" size="icon" className="lg:hidden">
+            <Layout className="h-6 w-6" />
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-64">
+          <div className="space-y-2 py-4">
+            <Button
+              variant={selectedView === 'goals' ? 'default' : 'ghost'}
+              className="w-full justify-start"
+              onClick={() => setSelectedView('goals')}
+            >
+              Goals
+            </Button>
+            <Button
+              variant={selectedView === 'analytics' ? 'default' : 'ghost'}
+              className="w-full justify-start"
+              onClick={() => setSelectedView('analytics')}
+            >
+              Analytics
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Main Content */}
+      <div className="flex-1 p-8">
+        {selectedView === 'goals' ? children : <AnalyticsPage />}
       </div>
     </div>
   );
