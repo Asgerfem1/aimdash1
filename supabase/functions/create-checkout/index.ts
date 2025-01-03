@@ -8,33 +8,54 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-  )
-
   try {
-    const authHeader = req.headers.get('Authorization')!
-    const token = authHeader.replace('Bearer ', '')
-    const { data } = await supabaseClient.auth.getUser(token)
-    const user = data.user
-    const email = user?.email
+    // Initialize Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    )
 
+    // Get user from auth header
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      console.error('No authorization header')
+      throw new Error('No authorization header')
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
+
+    if (userError || !user) {
+      console.error('Auth error:', userError)
+      throw new Error('Authentication failed')
+    }
+
+    const email = user.email
     if (!email) {
+      console.error('No email found for user')
       throw new Error('No email found')
     }
 
     console.log('Creating checkout for user:', email)
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+    // Initialize Stripe
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
+    if (!stripeKey) {
+      console.error('Stripe key not found')
+      throw new Error('Stripe configuration error')
+    }
+
+    const stripe = new Stripe(stripeKey, {
       apiVersion: '2023-10-16',
     })
 
     // Get the prices for the product
+    console.log('Fetching product prices...')
     const prices = await stripe.prices.list({
       product: 'prod_PJwJCBGPzEbBXx',
       active: true,
@@ -42,31 +63,37 @@ serve(async (req) => {
     });
 
     if (prices.data.length === 0) {
-      console.error('No active price found for this product');
-      throw new Error('No active price found for this product');
+      console.error('No active price found for this product')
+      throw new Error('No active price found for this product')
     }
 
-    const priceId = prices.data[0].id;
+    const priceId = prices.data[0].id
+    console.log('Using price ID:', priceId)
 
     // Create or retrieve customer
-    let customer;
+    console.log('Looking up customer for email:', email)
+    let customer
     const customers = await stripe.customers.list({
       email: email,
       limit: 1
     });
 
     if (customers.data.length > 0) {
-      customer = customers.data[0];
+      customer = customers.data[0]
+      console.log('Found existing customer:', customer.id)
     } else {
       customer = await stripe.customers.create({
         email: email,
         metadata: {
           supabase_user_id: user.id
         }
-      });
+      })
+      console.log('Created new customer:', customer.id)
     }
 
-    console.log('Creating payment session for customer:', customer.id);
+    // Create checkout session
+    console.log('Creating checkout session...')
+    const origin = req.headers.get('origin') || 'http://localhost:5173'
     const session = await stripe.checkout.sessions.create({
       customer: customer.id,
       line_items: [
@@ -76,29 +103,32 @@ serve(async (req) => {
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/?payment=success`,
-      cancel_url: `${req.headers.get('origin')}/`,
+      success_url: `${origin}/?payment=success`,
+      cancel_url: `${origin}/`,
       metadata: {
         supabase_user_id: user.id
       }
     });
 
-    console.log('Payment session created:', session.id);
+    console.log('Checkout session created:', session.id)
     return new Response(
       JSON.stringify({ url: session.url }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       }
-    );
+    )
   } catch (error) {
-    console.error('Error creating payment session:', error);
+    console.error('Error in create-checkout function:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.toString()
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: 400,
       }
-    );
+    )
   }
 });

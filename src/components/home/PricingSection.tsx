@@ -45,11 +45,17 @@ export const PricingSection = ({ purchaseStatus }: PricingSectionProps) => {
 
     try {
       console.log('Initiating checkout...');
+      
+      if (!session?.access_token) {
+        throw new Error('No valid session found');
+      }
+
       const response = await supabase.functions.invoke('create-checkout', {
         body: {},
-        headers: session ? {
-          Authorization: `Bearer ${session.access_token}`
-        } : undefined
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
       if (response.error) {
@@ -59,14 +65,15 @@ export const PricingSection = ({ purchaseStatus }: PricingSectionProps) => {
       
       const { url } = response.data;
       
-      if (url) {
-        window.location.href = url;
-      } else {
+      if (!url) {
         throw new Error('No checkout URL received');
       }
+
+      console.log('Redirecting to checkout URL:', url);
+      window.location.href = url;
     } catch (error) {
       console.error('Error:', error);
-      toast.error("Failed to initiate checkout. Please try again.");
+      toast.error(error.message || "Failed to initiate checkout. Please try again.");
     }
   };
 
