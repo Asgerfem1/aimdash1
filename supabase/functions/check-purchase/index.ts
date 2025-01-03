@@ -63,7 +63,7 @@ serve(async (req) => {
 
     // Check if there's any successful payment
     const hasPurchased = paymentIntents.data.some(payment => {
-      const isSuccessful = payment.status === 'succeeded' && payment.amount > 0
+      const isSuccessful = payment.status === 'succeeded' && payment.amount >= 2400; // $24.00 in cents
       console.log('Payment:', payment.id, 'Status:', payment.status, 'Amount:', payment.amount, 'Is successful:', isSuccessful)
       return isSuccessful
     })
