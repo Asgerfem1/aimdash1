@@ -5,7 +5,6 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -29,14 +28,13 @@ const Dashboard = () => {
       navigate("/login");
       return;
     }
+  }, [user, navigate]);
 
-    if (!isLoading && !purchaseStatus?.hasPurchased) {
-      toast.error("Please purchase AimDash to access the dashboard");
-      navigate("/");
-    }
-  }, [user, navigate, purchaseStatus, isLoading]);
-
-  if (!user || !purchaseStatus?.hasPurchased) return null;
+  if (!user || isLoading) return null;
+  if (!purchaseStatus?.hasPurchased) {
+    navigate("/");
+    return null;
+  }
 
   return (
     <DashboardLayout>
