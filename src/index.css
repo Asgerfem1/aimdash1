@@ -6,138 +6,36 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
   body {
-    @apply bg-background text-foreground transition-colors duration-300;
+    @apply bg-background text-foreground;
     font-family: 'Outfit', 'Inter', sans-serif;
-  }
-
-  body.dark {
-    @apply bg-background-dark text-foreground-dark;
-  }
-
-  .card {
-    @apply bg-card text-card-foreground border border-border shadow-sm hover:shadow-md transition-all duration-300;
-  }
-
-  body.dark .card {
-    @apply bg-card-dark text-card-foreground-dark border-border-dark;
-  }
-
-  .sidebar {
-    @apply bg-background border-border transition-colors duration-300;
-  }
-
-  body.dark .sidebar {
-    @apply bg-background-dark border-border-dark;
-  }
-
-  button.sidebar-button {
-    @apply text-foreground hover:bg-muted transition-colors duration-300;
-  }
-
-  body.dark button.sidebar-button {
-    @apply text-foreground-dark hover:bg-muted-dark;
-  }
-
-  button.sidebar-button.active {
-    @apply bg-primary text-primary-foreground hover:bg-primary-600;
-  }
-
-  body.dark button.sidebar-button.active {
-    @apply bg-primary-dark text-primary-foreground hover:bg-primary-600;
-  }
-
-  /* Form elements styling */
-  input, textarea, select {
-    @apply bg-background border-border text-foreground transition-colors duration-300;
-  }
-
-  body.dark input,
-  body.dark textarea,
-  body.dark select {
-    @apply bg-background-dark border-border-dark text-foreground-dark;
-  }
-
-  /* Filter selects styling */
-  .select-trigger {
-    @apply bg-background border-border text-foreground hover:bg-muted/50 transition-colors duration-300;
-  }
-
-  body.dark .select-trigger {
-    @apply bg-background-dark border-border-dark text-foreground-dark hover:bg-muted-dark/50;
-  }
-
-  .select-content {
-    @apply bg-background border-border text-foreground;
-  }
-
-  body.dark .select-content {
-    @apply bg-background-dark border-border-dark text-foreground-dark;
-  }
-
-  /* Analytics boxes styling */
-  .analytics-card {
-    @apply bg-card text-card-foreground border border-border shadow-sm transition-all duration-300;
-  }
-
-  body.dark .analytics-card {
-    @apply bg-card-dark text-card-foreground-dark border-border-dark;
-  }
-
-  /* Settings toggle styling */
-  .switch-root {
-    @apply bg-muted hover:bg-muted/80 data-[state=checked]:bg-primary transition-colors duration-300;
-  }
-
-  body.dark .switch-root {
-    @apply bg-muted-dark hover:bg-muted-dark/80 data-[state=checked]:bg-primary-dark;
-  }
-
-  .switch-thumb {
-    @apply bg-background transition-transform duration-300;
-  }
-
-  body.dark .switch-thumb {
-    @apply bg-background-dark;
-  }
-
-  /* Headings */
-  h1, h2, h3, h4, h5, h6 {
-    @apply text-foreground transition-colors duration-300;
-  }
-
-  body.dark h1,
-  body.dark h2,
-  body.dark h3,
-  body.dark h4,
-  body.dark h5,
-  body.dark h6 {
-    @apply text-foreground-dark;
-  }
-
-  /* Labels */
-  label {
-    @apply text-foreground transition-colors duration-300;
-  }
-
-  body.dark label {
-    @apply text-foreground-dark;
-  }
-
-  /* Progress bars */
-  .progress-bar {
-    @apply bg-muted transition-colors duration-300;
-  }
-
-  body.dark .progress-bar {
-    @apply bg-muted-dark;
-  }
-
-  .progress-indicator {
-    @apply bg-primary transition-colors duration-300;
-  }
-
-  body.dark .progress-indicator {
-    @apply bg-primary-dark;
   }
 }
