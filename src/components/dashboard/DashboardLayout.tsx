@@ -1,8 +1,14 @@
 import { useState } from "react";
-import { Layout } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Sidebar, SidebarProvider } from "@/components/ui/sidebar";
+import { LogOut, Target, BarChart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { AnalyticsPage } from "@/components/analytics/AnalyticsPage";
 
 interface DashboardLayoutProps {
@@ -11,58 +17,74 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [selectedView, setSelectedView] = useState<'goals' | 'analytics'>('goals');
+  const navigate = useNavigate();
+  const supabase = useSupabaseClient();
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full">
-        {/* Desktop Sidebar */}
-        <div className="hidden lg:flex">
-          <Sidebar className="border-r">
-            <div className="space-y-1 py-2 px-2">
-              <Button
-                variant={selectedView === 'goals' ? 'default' : 'ghost'}
-                className="w-full justify-start text-sm font-medium"
-                onClick={() => setSelectedView('goals')}
-              >
-                Goals
-              </Button>
-              <Button
-                variant={selectedView === 'analytics' ? 'default' : 'ghost'}
-                className="w-full justify-start text-sm font-medium"
-                onClick={() => setSelectedView('analytics')}
-              >
-                Analytics
-              </Button>
-            </div>
-          </Sidebar>
-        </div>
+        {/* Thin Sidebar */}
+        <div className="w-16 border-r bg-background flex flex-col items-center py-4 gap-8">
+          <TooltipProvider delayDuration={0}>
+            {/* Logout Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={handleLogout}
+                  className="p-2 hover:bg-accent rounded-md transition-colors"
+                >
+                  <LogOut className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Logout</p>
+              </TooltipContent>
+            </Tooltip>
 
-        {/* Mobile Sidebar */}
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="lg:hidden">
-              <Layout className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0">
-            <div className="space-y-1 py-2 px-2">
-              <Button
-                variant={selectedView === 'goals' ? 'default' : 'ghost'}
-                className="w-full justify-start text-sm font-medium"
-                onClick={() => setSelectedView('goals')}
-              >
-                Goals
-              </Button>
-              <Button
-                variant={selectedView === 'analytics' ? 'default' : 'ghost'}
-                className="w-full justify-start text-sm font-medium"
-                onClick={() => setSelectedView('analytics')}
-              >
-                Analytics
-              </Button>
-            </div>
-          </SheetContent>
-        </Sheet>
+            {/* Goals Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setSelectedView('goals')}
+                  className={`p-2 rounded-md transition-colors ${
+                    selectedView === 'goals' 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Target className="h-5 w-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Goals</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* Analytics Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setSelectedView('analytics')}
+                  className={`p-2 rounded-md transition-colors ${
+                    selectedView === 'analytics' 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <BarChart className="h-5 w-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Analytics</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
 
         {/* Main Content */}
         <div className="flex-1 p-8">
