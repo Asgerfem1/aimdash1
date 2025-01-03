@@ -28,6 +28,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const isSettingsPage = location.pathname === '/settings';
 
+  const handleViewChange = (view: 'goals' | 'analytics') => {
+    setSelectedView(view);
+    if (isSettingsPage) {
+      navigate('/dashboard');
+    }
+  };
+
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full">
@@ -53,12 +60,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
-                  onClick={() => {
-                    setSelectedView('goals');
-                    if (isSettingsPage) {
-                      navigate('/dashboard');
-                    }
-                  }}
+                  onClick={() => handleViewChange('goals')}
                   className={`p-2 rounded-md transition-colors ${
                     selectedView === 'goals' && !isSettingsPage
                       ? 'bg-primary text-primary-foreground' 
@@ -77,12 +79,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
-                  onClick={() => {
-                    setSelectedView('analytics');
-                    if (isSettingsPage) {
-                      navigate('/dashboard');
-                    }
-                  }}
+                  onClick={() => handleViewChange('analytics')}
                   className={`p-2 rounded-md transition-colors ${
                     selectedView === 'analytics' && !isSettingsPage
                       ? 'bg-primary text-primary-foreground' 
