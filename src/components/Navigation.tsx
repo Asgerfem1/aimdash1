@@ -1,10 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 
-export const Navigation = () => {
+interface NavigationProps {
+  purchaseStatus?: {
+    hasPurchased: boolean;
+  };
+}
+
+export const Navigation = ({ purchaseStatus }: NavigationProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,16 +22,42 @@ export const Navigation = () => {
     navigate("/");
   };
 
+  const handleDashboardClick = async () => {
+    if (!user) {
+      navigate("/signup");
+      return;
+    }
+
+    if (!purchaseStatus?.hasPurchased) {
+      try {
+        const response = await supabase.functions.invoke('create-checkout', {
+          body: {},
+        });
+        
+        if (response.error) throw new Error(response.error.message);
+        const { url } = response.data;
+        
+        if (url) {
+          window.location.href = url;
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        toast.error("Failed to initiate checkout. Please try again.");
+      }
+      return;
+    }
+
+    navigate("/dashboard");
+  };
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
   const scrollToSection = (sectionId: string) => {
-    // If not on the index page, navigate to index first
     if (location.pathname !== "/") {
       navigate("/");
       
-      // Wait for navigation to complete before scrolling
       setTimeout(() => {
         const element = document.getElementById(sectionId);
         if (element) {
@@ -33,14 +65,12 @@ export const Navigation = () => {
         }
       }, 100);
     } else {
-      // If already on index page, scroll directly
       const element = document.getElementById(sectionId);
       if (element) {
         element.scrollIntoView({ behavior: "smooth" });
       }
     }
     
-    // Close mobile menu if open
     setIsMenuOpen(false);
   };
 
@@ -70,7 +100,9 @@ export const Navigation = () => {
             </button>
             {user ? (
               <>
-                <Button onClick={() => navigate("/dashboard")}>Dashboard</Button>
+                <Button onClick={handleDashboardClick}>
+                  {purchaseStatus?.hasPurchased ? "Dashboard" : "Buy Now"}
+                </Button>
                 <Button variant="outline" onClick={handleLogout}>
                   Logout
                 </Button>
@@ -113,12 +145,9 @@ export const Navigation = () => {
                 <>
                   <Button
                     className="justify-start"
-                    onClick={() => {
-                      navigate("/dashboard");
-                      setIsMenuOpen(false);
-                    }}
+                    onClick={handleDashboardClick}
                   >
-                    Dashboard
+                    {purchaseStatus?.hasPurchased ? "Dashboard" : "Buy Now"}
                   </Button>
                   <Button
                     variant="outline"
