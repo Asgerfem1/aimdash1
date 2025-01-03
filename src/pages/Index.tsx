@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, CheckCircle2, BarChart3, Target } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useUser } from "@supabase/auth-helpers-react";
+import { useUser, useSession } from "@supabase/auth-helpers-react";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,21 +14,31 @@ import { useQuery } from "@tanstack/react-query";
 const Index = () => {
   const navigate = useNavigate();
   const user = useUser();
+  const session = useSession();
   const [searchParams] = useSearchParams();
   const paymentStatus = searchParams.get('payment');
 
   const { data: purchaseStatus, refetch } = useQuery({
     queryKey: ['purchaseStatus'],
     queryFn: async () => {
-      if (!user) return { hasPurchased: false };
+      if (!user || !session) return { hasPurchased: false };
+      
+      console.log('Checking purchase status with session token');
       const response = await supabase.functions.invoke('check-purchase', {
         body: {},
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
-      if (response.error) throw response.error;
+      
+      if (response.error) {
+        console.error('Purchase check error:', response.error);
+        throw response.error;
+      }
       console.log('Purchase status response:', response.data);
       return response.data;
     },
-    enabled: !!user,
+    enabled: !!user && !!session,
   });
 
   // Check payment status and refetch purchase status
@@ -86,6 +96,9 @@ const Index = () => {
     try {
       const response = await supabase.functions.invoke('create-checkout', {
         body: {},
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`
+        }
       });
 
       if (response.error) throw new Error(response.error.message);

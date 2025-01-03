@@ -8,13 +8,11 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    // Get the authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       console.error('No authorization header found')
@@ -27,7 +25,7 @@ serve(async (req) => {
       )
     }
 
-    // Initialize Supabase client
+    // Initialize Supabase Admin client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     
@@ -44,30 +42,18 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
-    // Get the JWT token
-    const token = authHeader.replace('Bearer ', '')
+    // Verify the access token
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    )
     
-    // Get user data using the admin client
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token)
-    
-    if (userError) {
+    if (userError || !user) {
       console.error('Error getting user:', userError)
       return new Response(
-        JSON.stringify({ error: 'Authentication failed', details: userError.message }),
+        JSON.stringify({ error: 'Authentication failed', details: userError?.message }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 401 
-        }
-      )
-    }
-
-    if (!user) {
-      console.error('No user found')
-      return new Response(
-        JSON.stringify({ error: 'User not found' }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 404 
         }
       )
     }
