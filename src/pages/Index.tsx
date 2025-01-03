@@ -3,13 +3,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, CheckCircle2, BarChart3, Target } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@supabase/auth-helpers-react";
+import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
+import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const navigate = useNavigate();
   const user = useUser();
+  const supabase = useSupabaseClient();
 
   const features = [
     {
@@ -43,6 +45,29 @@ const Index = () => {
       "Progress notifications",
       "Custom categories"
     ],
+  };
+
+  const handleCheckout = async () => {
+    if (!user) {
+      navigate('/signup');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {});
+      
+      if (error) throw error;
+      if (!data?.url) throw new Error('No checkout URL returned');
+
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to start checkout process",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -97,7 +122,7 @@ const Index = () => {
                 </ul>
                 <Button 
                   className="w-full"
-                  onClick={() => navigate(user ? "/dashboard" : "/signup")}
+                  onClick={handleCheckout}
                 >
                   Get Started
                 </Button>
@@ -119,7 +144,7 @@ const Index = () => {
           <Button 
             size="lg" 
             className="text-lg px-8"
-            onClick={() => navigate(user ? "/dashboard" : "/signup")}
+            onClick={handleCheckout}
           >
             Start Your Journey <ArrowRight className="ml-2" />
           </Button>
