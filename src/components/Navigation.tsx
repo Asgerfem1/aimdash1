@@ -91,18 +91,22 @@ export const Navigation = ({ purchaseStatus }: NavigationProps) => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            <button 
-              onClick={() => scrollToSection('how-it-works')} 
-              className="text-gray-600 hover:text-primary"
-            >
-              How It Works
-            </button>
-            <button 
-              onClick={() => scrollToSection('pricing')} 
-              className="text-gray-600 hover:text-primary"
-            >
-              Pricing
-            </button>
+            {!user || !purchaseStatus?.hasPurchased ? (
+              <>
+                <button 
+                  onClick={() => scrollToSection('how-it-works')} 
+                  className="text-gray-600 hover:text-primary"
+                >
+                  How It Works
+                </button>
+                <button 
+                  onClick={() => scrollToSection('pricing')} 
+                  className="text-gray-600 hover:text-primary"
+                >
+                  Pricing
+                </button>
+              </>
+            ) : null}
             {user ? (
               <>
                 <Button onClick={handleDashboardClick}>
@@ -134,18 +138,22 @@ export const Navigation = ({ purchaseStatus }: NavigationProps) => {
         {isMenuOpen && (
           <div className="md:hidden py-4 animate-fade-in">
             <div className="flex flex-col space-y-4">
-              <button
-                onClick={() => scrollToSection('how-it-works')}
-                className="text-gray-600 hover:text-primary px-4 py-2 text-left"
-              >
-                How It Works
-              </button>
-              <button
-                onClick={() => scrollToSection('pricing')}
-                className="text-gray-600 hover:text-primary px-4 py-2 text-left"
-              >
-                Pricing
-              </button>
+              {!user || !purchaseStatus?.hasPurchased ? (
+                <>
+                  <button
+                    onClick={() => scrollToSection('how-it-works')}
+                    className="text-gray-600 hover:text-primary px-4 py-2 text-left"
+                  >
+                    How It Works
+                  </button>
+                  <button
+                    onClick={() => scrollToSection('pricing')}
+                    className="text-gray-600 hover:text-primary px-4 py-2 text-left"
+                  >
+                    Pricing
+                  </button>
+                </>
+              ) : null}
               {user ? (
                 <>
                   <Button
