@@ -7,7 +7,7 @@ import { useUser } from "@supabase/auth-helpers-react";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -55,25 +55,27 @@ const Index = () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-        }
-      );
-
-      const { url, error } = await response.json();
-      
-      if (error) throw new Error(error);
-      if (url) {
-        window.location.href = url;
+      if (!session?.access_token) {
+        throw new Error("No session found");
       }
+
+      const response = await supabase.functions.invoke('create-checkout', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (response.error) throw new Error(response.error.message);
+      if (!response.data?.url) throw new Error("No checkout URL returned");
+
+      window.location.href = response.data.url;
     } catch (error) {
       console.error('Error:', error);
-      toast.error("Failed to initiate checkout. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to initiate checkout. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

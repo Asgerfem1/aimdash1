@@ -49,7 +49,7 @@ serve(async (req) => {
       customer_email: customer_id ? undefined : email,
       line_items: [
         {
-          price: 'price_placeholder', // Replace with your actual price ID from Stripe
+          price: 'price_1OxVqkKXnj3mXxLqoWBHHWxP', // Replace with your actual price ID from the Stripe dashboard
           quantity: 1,
         },
       ],
