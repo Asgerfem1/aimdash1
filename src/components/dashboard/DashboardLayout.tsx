@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { LogOut, Target, BarChart, Settings } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { LogOut, Target, BarChart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { 
@@ -18,7 +18,6 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [selectedView, setSelectedView] = useState<'goals' | 'analytics'>('goals');
   const navigate = useNavigate();
-  const location = useLocation();
   const supabase = useSupabaseClient();
 
   const handleLogout = async () => {
@@ -26,24 +25,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     navigate('/');
   };
 
-  const isSettingsPage = location.pathname === '/settings';
-
   const handleViewChange = (view: 'goals' | 'analytics') => {
     setSelectedView(view);
-    if (isSettingsPage) {
-      navigate('/dashboard');
-    }
   };
 
-  const handleSettingsClick = () => {
-    navigate('/settings');
-  };
-
-  const currentContent = isSettingsPage 
+  const currentContent = selectedView === 'goals' 
     ? children 
-    : selectedView === 'goals' 
-      ? children 
-      : <AnalyticsPage />;
+    : <AnalyticsPage />;
 
   return (
     <SidebarProvider defaultOpen={false}>
@@ -72,7 +60,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <button
                   onClick={() => handleViewChange('goals')}
                   className={`p-2 rounded-md transition-colors ${
-                    selectedView === 'goals' && !isSettingsPage
+                    selectedView === 'goals'
                       ? 'bg-primary text-primary-foreground' 
                       : 'hover:bg-accent text-muted-foreground hover:text-foreground'
                   }`}
@@ -91,7 +79,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <button
                   onClick={() => handleViewChange('analytics')}
                   className={`p-2 rounded-md transition-colors ${
-                    selectedView === 'analytics' && !isSettingsPage
+                    selectedView === 'analytics'
                       ? 'bg-primary text-primary-foreground' 
                       : 'hover:bg-accent text-muted-foreground hover:text-foreground'
                   }`}
@@ -101,25 +89,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </TooltipTrigger>
               <TooltipContent side="right">
                 <p>Analytics</p>
-              </TooltipContent>
-            </Tooltip>
-
-            {/* Settings Button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={handleSettingsClick}
-                  className={`p-2 rounded-md transition-colors ${
-                    isSettingsPage
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-accent text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <Settings className="h-5 w-5" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="right">
-                <p>Settings</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

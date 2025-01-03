@@ -8,6 +8,9 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { GoalFilters } from "@/components/dashboard/GoalFilters";
 import { toast } from "sonner";
 import { isWithinInterval, addDays, addWeeks, addMonths, parseISO } from "date-fns";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { useTheme } from "@/hooks/use-theme";
 
 export function DashboardContent() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -116,12 +119,32 @@ export function DashboardContent() {
     return false;
   });
 
+  const { theme, setTheme } = useTheme();
+
+  const handleThemeChange = (checked: boolean) => {
+    const newTheme = checked ? "dark" : "light";
+    setTheme(newTheme);
+    toast({
+      title: "Theme updated",
+      description: `Theme has been set to ${newTheme} mode`,
+    });
+  };
+
   return (
     <>
       <DashboardHeader onAddGoal={handleAddNew} />
       
       <div className="mt-8">
         <DashboardStats />
+      </div>
+
+      <div className="mt-8 flex items-center justify-end space-x-2 border-b pb-4">
+        <Label htmlFor="dark-mode">Dark Mode</Label>
+        <Switch
+          id="dark-mode"
+          checked={theme === "dark"}
+          onCheckedChange={handleThemeChange}
+        />
       </div>
 
       {todaysFocus && todaysFocus.length > 0 && (
