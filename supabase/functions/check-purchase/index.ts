@@ -18,30 +18,32 @@ serve(async (req) => {
   )
 
   try {
-    // Get the JWT token from the Authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       console.error('No authorization header found')
       throw new Error('No authorization header')
     }
 
-    const token = authHeader.replace('Bearer ', '')
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
+    // Get the current session using the token
+    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession()
     
-    if (userError) {
-      console.error('Error getting user:', userError)
-      throw userError
+    if (sessionError) {
+      console.error('Session error:', sessionError)
+      throw sessionError
     }
 
-    if (!user) {
-      console.error('No user found')
+    if (!session?.user) {
+      console.error('No user in session')
       throw new Error('No user found')
     }
 
+    const user = session.user
     if (!user.email) {
       console.error('No email found for user:', user.id)
       throw new Error('No email found')
     }
+
+    console.log('Checking purchase status for user:', user.id, 'email:', user.email)
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
@@ -64,15 +66,16 @@ serve(async (req) => {
       )
     }
 
-    const priceId = prices.data[0].id;
-
     // Get customer by email
     const customers = await stripe.customers.list({
       email: user.email,
       limit: 1
     })
 
+    console.log('Found customers:', customers.data.length)
+
     if (customers.data.length === 0) {
+      console.log('No customer found for email:', user.email)
       return new Response(
         JSON.stringify({ hasPurchased: false }),
         { 
@@ -88,10 +91,15 @@ serve(async (req) => {
       limit: 100
     });
 
-    const hasSuccessfulPayment = payments.data.some(payment => 
-      payment.status === 'succeeded' && 
-      payment.metadata.product_id === 'prod_RWKzPGxzvL9Neb'
-    );
+    console.log('Found payments:', payments.data.length)
+
+    const hasSuccessfulPayment = payments.data.some(payment => {
+      console.log('Payment:', payment.id, 'Status:', payment.status, 'Product:', payment.metadata.product_id)
+      return payment.status === 'succeeded' && 
+             payment.metadata.product_id === 'prod_RWKzPGxzvL9Neb'
+    });
+
+    console.log('Has purchased:', hasSuccessfulPayment)
 
     return new Response(
       JSON.stringify({ hasPurchased: hasSuccessfulPayment }),
