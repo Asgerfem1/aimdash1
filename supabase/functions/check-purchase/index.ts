@@ -32,18 +32,6 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     })
 
-    const prices = await stripe.prices.list({
-      product: 'prod_RWKPd5xKnMRlbr',
-      active: true,
-      limit: 1,
-    });
-
-    if (prices.data.length === 0) {
-      throw new Error('No active price found for this product')
-    }
-
-    const priceId = prices.data[0].id
-
     const customers = await stripe.customers.list({
       email: email,
       limit: 1
@@ -56,14 +44,15 @@ serve(async (req) => {
       )
     }
 
-    const charges = await stripe.charges.list({
+    // Check for successful payments
+    const payments = await stripe.paymentIntents.list({
       customer: customers.data[0].id,
       limit: 100
     })
 
-    const hasPurchased = charges.data.some(charge => 
-      charge.status === 'succeeded' && 
-      charge.amount > 0
+    const hasPurchased = payments.data.some(payment => 
+      payment.status === 'succeeded' && 
+      payment.amount > 0
     )
 
     return new Response(
