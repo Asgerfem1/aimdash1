@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { startOfWeek, endOfWeek, eachDayOfInterval, format, isWithinInterval, parseISO } from 'date-fns';
 
 interface ConsistencyChartProps {
@@ -14,19 +14,25 @@ export function ConsistencyChart({ goals }: ConsistencyChartProps) {
   const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
   
   const data = weekDays.map(day => {
-    const completedGoals = goals.filter(goal => {
-      if (!goal.last_completed_at) return false;
+    const completedGoals = {
+      day: format(day, 'EEE'),
+      High: 0,
+      Medium: 0,
+      Low: 0,
+    };
+
+    goals.forEach(goal => {
+      if (!goal.last_completed_at) return;
       const completedDate = parseISO(goal.last_completed_at);
-      return isWithinInterval(completedDate, {
+      if (isWithinInterval(completedDate, {
         start: day,
         end: new Date(day.getTime() + 24 * 60 * 60 * 1000 - 1),
-      });
-    }).length;
+      })) {
+        completedGoals[goal.priority as keyof typeof completedGoals] += 1;
+      }
+    });
 
-    return {
-      day: format(day, 'EEE'),
-      completed: completedGoals,
-    };
+    return completedGoals;
   });
 
   return (
@@ -41,7 +47,10 @@ export function ConsistencyChart({ goals }: ConsistencyChartProps) {
               <XAxis dataKey="day" />
               <YAxis />
               <Tooltip />
-              <Bar dataKey="completed" fill="#2563eb" />
+              <Legend />
+              <Bar dataKey="High" stackId="a" fill="#ef4444" name="High Priority" />
+              <Bar dataKey="Medium" stackId="a" fill="#f97316" name="Medium Priority" />
+              <Bar dataKey="Low" stackId="a" fill="#22c55e" name="Low Priority" />
             </BarChart>
           </ResponsiveContainer>
         </div>
