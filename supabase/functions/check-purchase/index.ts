@@ -8,21 +8,10 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
-
-  // Initialize Supabase client with service role key for admin operations
-  const supabaseAdmin = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    }
-  )
 
   try {
     const authHeader = req.headers.get('Authorization')
@@ -34,7 +23,19 @@ serve(async (req) => {
     // Get the JWT token
     const token = authHeader.replace('Bearer ', '')
     
-    // Get user data using the admin client
+    // Initialize Supabase client with service role key for admin operations
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
+
+    // Get user data using the admin client and JWT token
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token)
     
     if (userError) {
