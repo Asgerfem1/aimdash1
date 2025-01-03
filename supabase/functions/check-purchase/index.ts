@@ -5,9 +5,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Type': 'application/json',
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -19,7 +22,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'No authorization header' }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: corsHeaders,
           status: 401 
         }
       )
@@ -34,7 +37,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Server configuration error' }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: corsHeaders,
           status: 500 
         }
       )
@@ -52,7 +55,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Authentication failed', details: userError?.message }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: corsHeaders,
           status: 401 
         }
       )
@@ -63,7 +66,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'User email not found' }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: corsHeaders,
           status: 400 
         }
       )
@@ -77,7 +80,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Stripe configuration error' }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: corsHeaders,
           status: 500 
         }
       )
@@ -100,7 +103,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ hasPurchased: false }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          headers: corsHeaders,
           status: 200 
         }
       )
@@ -117,7 +120,7 @@ serve(async (req) => {
     const hasSuccessfulPayment = payments.data.some(payment => {
       console.log('Payment:', payment.id, 'Status:', payment.status, 'Product:', payment.metadata.product_id)
       return payment.status === 'succeeded' && 
-             payment.metadata.product_id === 'prod_PJwJCBGPzEbBXx'  // Updated product ID
+             payment.metadata.product_id === 'prod_PJwJCBGPzEbBXx'
     })
 
     console.log('Has purchased:', hasSuccessfulPayment)
@@ -125,7 +128,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ hasPurchased: hasSuccessfulPayment }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: corsHeaders,
         status: 200 
       }
     )
@@ -135,7 +138,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: corsHeaders,
         status: 500 
       }
     )

@@ -18,26 +18,37 @@ const Index = () => {
   const paymentStatus = searchParams.get('payment');
 
   const { data: purchaseStatus, refetch } = useQuery({
-    queryKey: ['purchaseStatus'],
+    queryKey: ['purchaseStatus', user?.id],
     queryFn: async () => {
-      if (!user || !session) return { hasPurchased: false };
-      
-      console.log('Checking purchase status with session token');
-      const response = await supabase.functions.invoke('check-purchase', {
-        body: {},
-        headers: {
-          Authorization: `Bearer ${session.access_token}`
-        }
-      });
-      
-      if (response.error) {
-        console.error('Purchase check error:', response.error);
-        throw response.error;
+      if (!user || !session?.access_token) {
+        console.log('No user or session token available');
+        return { hasPurchased: false };
       }
-      console.log('Purchase status response:', response.data);
-      return response.data;
+      
+      try {
+        console.log('Checking purchase status with session token');
+        const response = await supabase.functions.invoke('check-purchase', {
+          body: {},
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.error) {
+          console.error('Purchase check error:', response.error);
+          throw response.error;
+        }
+        
+        console.log('Purchase status response:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Purchase check error:', error);
+        throw error;
+      }
     },
-    enabled: !!user && !!session,
+    enabled: !!user && !!session?.access_token,
+    retry: 1
   });
 
   // Check payment status and refetch purchase status
