@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, CheckCircle2, BarChart3, Target } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUser } from "@supabase/auth-helpers-react";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
@@ -13,8 +13,10 @@ import { useQuery } from "@tanstack/react-query";
 const Index = () => {
   const navigate = useNavigate();
   const user = useUser();
+  const [searchParams] = useSearchParams();
+  const paymentStatus = searchParams.get('payment');
 
-  const { data: purchaseStatus } = useQuery({
+  const { data: purchaseStatus, refetch } = useQuery({
     queryKey: ['purchaseStatus'],
     queryFn: async () => {
       if (!user) return { hasPurchased: false };
@@ -22,10 +24,19 @@ const Index = () => {
         body: {},
       });
       if (response.error) throw response.error;
+      console.log('Purchase status response:', response.data);
       return response.data;
     },
     enabled: !!user,
   });
+
+  // Check payment status and refetch purchase status
+  React.useEffect(() => {
+    if (paymentStatus === 'success') {
+      refetch();
+      toast.success('Payment successful! Welcome to AimDash.');
+    }
+  }, [paymentStatus, refetch]);
 
   const features = [
     {
