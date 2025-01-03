@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LogOut, Target, BarChart } from "lucide-react";
+import { LogOut, Target, BarChart, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -81,6 +81,21 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </TooltipTrigger>
               <TooltipContent side="right">
                 <p>Analytics</p>
+              </TooltipContent>
+            </Tooltip>
+
+            {/* Settings Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => navigate('/settings')}
+                  className="p-2 hover:bg-accent rounded-md transition-colors"
+                >
+                  <Settings className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Settings</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
