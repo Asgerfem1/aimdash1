@@ -28,9 +28,9 @@ export function ThemeProvider({
   );
 
   useEffect(() => {
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-    root.classList.add(theme);
+    const body = document.body;
+    body.classList.remove("light", "dark");
+    body.classList.add(theme);
     localStorage.setItem("theme", theme);
   }, [theme]);
 

@@ -36,16 +36,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full">
         {/* Thin Sidebar */}
-        <div className="w-16 border-r bg-background flex flex-col items-center py-4 gap-8">
+        <div className="sidebar w-16 border-r flex flex-col items-center py-4 gap-8">
           <TooltipProvider delayDuration={0}>
             {/* Logout Button */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   onClick={handleLogout}
-                  className="p-2 hover:bg-accent rounded-md transition-colors"
+                  className="sidebar-button p-2 rounded-md"
                 >
-                  <LogOut className="h-5 w-5 text-muted-foreground hover:text-foreground" />
+                  <LogOut className="h-5 w-5" />
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right">
@@ -58,10 +58,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <TooltipTrigger asChild>
                 <button
                   onClick={() => setSelectedView('goals')}
-                  className={`p-2 rounded-md transition-colors ${
-                    selectedView === 'goals'
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                  className={`sidebar-button p-2 rounded-md ${
+                    selectedView === 'goals' ? 'active' : ''
                   }`}
                 >
                   <Target className="h-5 w-5" />
@@ -77,10 +75,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <TooltipTrigger asChild>
                 <button
                   onClick={() => setSelectedView('analytics')}
-                  className={`p-2 rounded-md transition-colors ${
-                    selectedView === 'analytics'
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                  className={`sidebar-button p-2 rounded-md ${
+                    selectedView === 'analytics' ? 'active' : ''
                   }`}
                 >
                   <BarChart className="h-5 w-5" />
@@ -96,10 +92,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <TooltipTrigger asChild>
                 <button
                   onClick={() => setSelectedView('settings')}
-                  className={`p-2 rounded-md transition-colors ${
-                    selectedView === 'settings'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                  className={`sidebar-button p-2 rounded-md ${
+                    selectedView === 'settings' ? 'active' : ''
                   }`}
                 >
                   <Settings className="h-5 w-5" />
