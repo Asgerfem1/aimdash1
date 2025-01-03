@@ -55,7 +55,13 @@ serve(async (req) => {
 
     console.log('Checking purchase status for user:', user.id, 'email:', user.email)
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
+    if (!stripeKey) {
+      console.error('Stripe secret key not found')
+      throw new Error('Stripe configuration error')
+    }
+
+    const stripe = new Stripe(stripeKey, {
       apiVersion: '2023-10-16',
     })
 
