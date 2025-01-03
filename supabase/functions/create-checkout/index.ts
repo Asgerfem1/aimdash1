@@ -28,18 +28,21 @@ serve(async (req) => {
       throw new Error('No email found')
     }
 
+    console.log('Creating checkout for user:', email)
+
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     })
 
     // Get the prices for the product
     const prices = await stripe.prices.list({
-      product: 'prod_PJwJCBGPzEbBXx',  // Updated product ID
+      product: 'prod_PJwJCBGPzEbBXx',
       active: true,
       limit: 1,
     });
 
     if (prices.data.length === 0) {
+      console.error('No active price found for this product');
       throw new Error('No active price found for this product');
     }
 
@@ -73,7 +76,7 @@ serve(async (req) => {
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/dashboard?payment=success`,
+      success_url: `${req.headers.get('origin')}/?payment=success`,
       cancel_url: `${req.headers.get('origin')}/`,
       metadata: {
         supabase_user_id: user.id

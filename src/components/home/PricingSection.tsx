@@ -44,18 +44,25 @@ export const PricingSection = ({ purchaseStatus }: PricingSectionProps) => {
     }
 
     try {
+      console.log('Initiating checkout...');
       const response = await supabase.functions.invoke('create-checkout', {
         body: {},
-        headers: {
-          Authorization: `Bearer ${session?.access_token}`
-        }
+        headers: session ? {
+          Authorization: `Bearer ${session.access_token}`
+        } : undefined
       });
 
-      if (response.error) throw new Error(response.error.message);
+      if (response.error) {
+        console.error('Checkout error:', response.error);
+        throw new Error(response.error.message);
+      }
+      
       const { url } = response.data;
       
       if (url) {
         window.location.href = url;
+      } else {
+        throw new Error('No checkout URL received');
       }
     } catch (error) {
       console.error('Error:', error);
