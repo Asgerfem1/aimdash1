@@ -2,6 +2,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RecurrenceInterval } from "@/types/goals";
+import { useEffect } from "react";
 
 interface GoalRecurrenceFieldsProps {
   isRecurring: boolean;
@@ -16,6 +17,13 @@ export function GoalRecurrenceFields({
   onIntervalChange,
   defaultInterval = "daily"
 }: GoalRecurrenceFieldsProps) {
+  // Set the default interval when isRecurring changes to true
+  useEffect(() => {
+    if (isRecurring) {
+      onIntervalChange("daily");
+    }
+  }, [isRecurring, onIntervalChange]);
+
   return (
     <>
       <div className="flex items-center space-x-2">
@@ -33,6 +41,7 @@ export function GoalRecurrenceFields({
           <Select
             onValueChange={(value) => onIntervalChange(value as RecurrenceInterval)}
             defaultValue={defaultInterval}
+            value={defaultInterval}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select interval" />
