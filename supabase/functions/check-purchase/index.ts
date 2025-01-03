@@ -25,70 +25,82 @@ serve(async (req) => {
       throw new Error('No authorization header')
     }
 
-    // Get the current session using the token
-    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession()
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
     
-    if (sessionError) {
-      console.error('Session error:', sessionError)
-      throw sessionError
+    if (userError) {
+      console.error('Error getting user:', userError)
+      throw userError
     }
 
-    if (!session?.user) {
-      console.error('No user in session')
+    if (!user) {
+      console.error('No user found')
       throw new Error('No user found')
     }
 
-    const user = session.user
     if (!user.email) {
       console.error('No email found for user:', user.id)
       throw new Error('No email found')
     }
 
-    console.log('Checking purchase status for user:', user.id, 'email:', user.email)
-
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     })
 
-    // Find the customer
+    // Get the prices for the product
+    const prices = await stripe.prices.list({
+      product: 'prod_RWKzPGxzvL9Neb',
+      active: true,
+      limit: 1,
+    });
+
+    if (prices.data.length === 0) {
+      return new Response(
+        JSON.stringify({ hasPurchased: false }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      )
+    }
+
+    const priceId = prices.data[0].id;
+
+    // Get customer by email
     const customers = await stripe.customers.list({
       email: user.email,
       limit: 1
     })
 
-    console.log('Found customers:', customers.data.length)
-
     if (customers.data.length === 0) {
-      console.log('No customer found for email:', user.email)
       return new Response(
         JSON.stringify({ hasPurchased: false }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
       )
     }
 
-    const customer = customers.data[0]
-    console.log('Found customer:', customer.id)
-
-    // Get all successful payments for this customer
+    // Check for successful payments
     const payments = await stripe.paymentIntents.list({
-      customer: customer.id,
+      customer: customers.data[0].id,
       limit: 100
-    })
+    });
 
-    console.log('Found payments:', payments.data.length)
-
-    // Check if there's any successful payment
-    const hasPurchased = payments.data.some(payment => {
-      console.log('Payment:', payment.id, 'Status:', payment.status)
-      return payment.status === 'succeeded'
-    })
-
-    console.log('Has purchased:', hasPurchased)
+    const hasSuccessfulPayment = payments.data.some(payment => 
+      payment.status === 'succeeded' && 
+      payment.metadata.product_id === 'prod_RWKzPGxzvL9Neb'
+    );
 
     return new Response(
-      JSON.stringify({ hasPurchased }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ hasPurchased: hasSuccessfulPayment }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
     )
+
   } catch (error) {
     console.error('Error checking purchase:', error)
     return new Response(
