@@ -12,19 +12,20 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
-  // Initialize Supabase client with service role key for admin operations
-  const supabaseAdmin = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    }
-  )
-
   try {
+    // Initialize Supabase client with service role key for admin operations
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
+
+    // Get the authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       console.error('No authorization header found')
@@ -34,7 +35,7 @@ serve(async (req) => {
     // Get the JWT token
     const token = authHeader.replace('Bearer ', '')
     
-    // Get user data using the admin client
+    // Get user data using the admin client and JWT verification
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token)
     
     if (userError) {
@@ -57,23 +58,6 @@ serve(async (req) => {
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
       apiVersion: '2023-10-16',
     })
-
-    // Get the prices for the product
-    const prices = await stripe.prices.list({
-      product: 'prod_RWKzPGxzvL9Neb',
-      active: true,
-      limit: 1,
-    });
-
-    if (prices.data.length === 0) {
-      return new Response(
-        JSON.stringify({ hasPurchased: false }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
-      )
-    }
 
     // Get customer by email
     const customers = await stripe.customers.list({
