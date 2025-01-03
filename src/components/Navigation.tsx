@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { toast } from "@/hooks/use-toast";
 
 interface NavigationProps {
   purchaseStatus?: {
@@ -42,7 +43,11 @@ export const Navigation = ({ purchaseStatus }: NavigationProps) => {
         }
       } catch (error) {
         console.error('Error:', error);
-        toast.error("Failed to initiate checkout. Please try again.");
+        toast({
+          title: "Error",
+          description: "Failed to initiate checkout. Please try again.",
+          variant: "destructive",
+        });
       }
       return;
     }
