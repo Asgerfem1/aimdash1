@@ -17,16 +17,16 @@ export default {
       },
       colors: {
         border: {
-          DEFAULT: "hsl(var(--border))",
-          dark: "#2e2e2e",
+          DEFAULT: "#C8C8C9",
+          dark: "#333333",
         },
         background: {
           DEFAULT: "#ffffff",
           dark: "#121212",
         },
         foreground: {
-          DEFAULT: "#000000",
-          dark: "#ffffff",
+          DEFAULT: "#403E43",
+          dark: "#F1F0FB",
         },
         primary: {
           DEFAULT: "#6366F1",
@@ -52,17 +52,17 @@ export default {
         },
         card: {
           DEFAULT: "#ffffff",
-          dark: "#1e1e1e",
+          dark: "#1A1F2C",
           foreground: {
-            DEFAULT: "#000000",
-            dark: "#ffffff",
+            DEFAULT: "#403E43",
+            dark: "#F1F0FB",
           },
         },
         muted: {
           DEFAULT: "#f3f4f6",
           foreground: "#6b7280",
-          dark: "#2e2e2e",
-          "foreground-dark": "#a1a1aa",
+          dark: "#222222",
+          "foreground-dark": "#D6BCFA",
         },
       },
       keyframes: {

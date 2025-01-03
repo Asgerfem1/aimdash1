@@ -16,11 +16,11 @@
   }
 
   .card {
-    @apply bg-card border-border transition-colors duration-300;
+    @apply bg-card text-card-foreground border border-border shadow-sm transition-colors duration-300;
   }
 
   body.dark .card {
-    @apply bg-card-dark border-border-dark;
+    @apply bg-card-dark text-card-foreground-dark border-border-dark;
   }
 
   .sidebar {
@@ -45,5 +45,36 @@
 
   body.dark button.sidebar-button.active {
     @apply bg-primary-dark text-primary-foreground hover:bg-primary-600;
+  }
+
+  input, textarea, select {
+    @apply bg-background border-border text-foreground;
+  }
+
+  body.dark input,
+  body.dark textarea,
+  body.dark select {
+    @apply bg-background-dark border-border-dark text-foreground-dark;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-foreground;
+  }
+
+  body.dark h1,
+  body.dark h2,
+  body.dark h3,
+  body.dark h4,
+  body.dark h5,
+  body.dark h6 {
+    @apply text-foreground-dark;
+  }
+
+  label {
+    @apply text-foreground;
+  }
+
+  body.dark label {
+    @apply text-foreground-dark;
   }
 }
