@@ -18,12 +18,20 @@ serve(async (req) => {
   );
 
   try {
-    const authHeader = req.headers.get('Authorization')!;
-    const token = authHeader.replace('Bearer ', '');
-    const { data } = await supabaseClient.auth.getUser(token);
-    const user = data.user;
-    const email = user?.email;
+    // Get the authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header');
+    }
 
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+    
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    const email = user.email;
     if (!email) {
       throw new Error('No email found');
     }
@@ -32,6 +40,7 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     });
 
+    // List customers with this email
     const customers = await stripe.customers.list({
       email: email,
       limit: 1,
@@ -82,7 +91,7 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: 400, // Changed from 500 to 400 for client errors
       }
     );
   }
