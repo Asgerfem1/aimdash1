@@ -34,7 +34,7 @@ serve(async (req) => {
       apiVersion: '2023-10-16',
     })
 
-    // First find the customer
+    // Find the customer
     const customers = await stripe.customers.list({
       email: email,
       limit: 1
@@ -50,22 +50,21 @@ serve(async (req) => {
       )
     }
 
-    const customerId = customers.data[0].id
-    console.log('Checking payments for customer:', customerId)
+    const customer = customers.data[0]
+    console.log('Found customer:', customer.id)
 
-    // Check for successful payments using PaymentIntents
-    const paymentIntents = await stripe.paymentIntents.list({
-      customer: customerId,
+    // Get all successful payments for this customer
+    const payments = await stripe.paymentIntents.list({
+      customer: customer.id,
       limit: 100
     })
 
-    console.log('Found payment intents:', paymentIntents.data.length)
+    console.log('Found payments:', payments.data.length)
 
     // Check if there's any successful payment
-    const hasPurchased = paymentIntents.data.some(payment => {
-      const isSuccessful = payment.status === 'succeeded';
-      console.log('Payment:', payment.id, 'Status:', payment.status, 'Amount:', payment.amount);
-      return isSuccessful;
+    const hasPurchased = payments.data.some(payment => {
+      console.log('Payment:', payment.id, 'Status:', payment.status)
+      return payment.status === 'succeeded'
     })
 
     console.log('Has purchased:', hasPurchased)

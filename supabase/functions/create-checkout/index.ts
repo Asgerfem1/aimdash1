@@ -45,41 +45,27 @@ serve(async (req) => {
 
     const priceId = prices.data[0].id;
 
+    // Create or retrieve customer
+    let customer;
     const customers = await stripe.customers.list({
       email: email,
       limit: 1
-    })
+    });
 
-    let customer_id = undefined
     if (customers.data.length > 0) {
-      customer_id = customers.data[0].id
-      
-      // Check if the customer has already made a successful payment
-      const payments = await stripe.paymentIntents.list({
-        customer: customer_id,
-        limit: 100
-      })
-
-      const hasSuccessfulPayment = payments.data.some(payment => 
-        payment.status === 'succeeded' && 
-        payment.amount > 0
-      )
-
-      if (hasSuccessfulPayment) {
-        return new Response(
-          JSON.stringify({ error: "Already purchased" }),
-          { 
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 400,
-          }
-        )
-      }
+      customer = customers.data[0];
+    } else {
+      customer = await stripe.customers.create({
+        email: email,
+        metadata: {
+          supabase_user_id: user.id
+        }
+      });
     }
 
-    console.log('Creating payment session...')
+    console.log('Creating payment session for customer:', customer.id);
     const session = await stripe.checkout.sessions.create({
-      customer: customer_id,
-      customer_email: customer_id ? undefined : email,
+      customer: customer.id,
       line_items: [
         {
           price: priceId,
@@ -89,24 +75,27 @@ serve(async (req) => {
       mode: 'payment',
       success_url: `${req.headers.get('origin')}/dashboard?payment=success`,
       cancel_url: `${req.headers.get('origin')}/`,
-    })
+      metadata: {
+        supabase_user_id: user.id
+      }
+    });
 
-    console.log('Payment session created:', session.id)
+    console.log('Payment session created:', session.id);
     return new Response(
       JSON.stringify({ url: session.url }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       }
-    )
+    );
   } catch (error) {
-    console.error('Error creating payment session:', error)
+    console.error('Error creating payment session:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
       }
-    )
+    );
   }
-})
+});
