@@ -6,8 +6,6 @@ import { useNavigate } from "react-router-dom";
 import { useUser } from "@supabase/auth-helpers-react";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -42,53 +40,9 @@ const Index = () => {
       "Priority levels",
       "Recurring goals",
       "Visual analytics",
+      "Progress notifications",
       "Custom categories"
     ],
-  };
-
-  const handleCheckout = async () => {
-    if (!user) {
-      navigate("/signup");
-      return;
-    }
-
-    try {
-      console.log('Starting checkout process...');
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
-        console.error('No session found');
-        throw new Error("No session found");
-      }
-
-      console.log('Invoking checkout function...');
-      const response = await supabase.functions.invoke('create-checkout', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-
-      console.log('Checkout response:', response);
-
-      if (response.error) {
-        console.error('Checkout error:', response.error);
-        throw new Error(response.error.message);
-      }
-      
-      if (!response.data?.url) {
-        console.error('No checkout URL returned');
-        throw new Error("No checkout URL returned");
-      }
-
-      window.location.href = response.data.url;
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: `Failed to initiate checkout: ${error.message}`,
-        variant: "destructive",
-      });
-    }
   };
 
   return (
@@ -143,7 +97,7 @@ const Index = () => {
                 </ul>
                 <Button 
                   className="w-full"
-                  onClick={handleCheckout}
+                  onClick={() => navigate(user ? "/dashboard" : "/signup")}
                 >
                   Get Started
                 </Button>
@@ -153,6 +107,7 @@ const Index = () => {
         </div>
       </section>
 
+      {/* CTA Section */}
       <section className="py-20 px-4 bg-gradient-to-b from-white to-primary-100">
         <div className="container mx-auto max-w-6xl text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 text-primary-700">

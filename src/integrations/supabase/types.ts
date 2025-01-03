@@ -207,24 +207,6 @@ export type Database = {
           },
         ]
       }
-      user_purchases: {
-        Row: {
-          id: string
-          purchased_at: string
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          purchased_at?: string
-          user_id: string
-        }
-        Update: {
-          id?: string
-          purchased_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       wallet_users: {
         Row: {
           created_at: string
