@@ -143,9 +143,20 @@ const Index = () => {
           <Button 
             size="lg" 
             className="text-lg px-8"
-            onClick={() => navigate(user ? "/dashboard" : "/signup")}
+            onClick={() => {
+              if (!user) {
+                navigate("/signup");
+              } else if (!isSubscribed) {
+                const element = document.getElementById('pricing');
+                if (element) {
+                  element.scrollIntoView({ behavior: "smooth" });
+                }
+              } else {
+                navigate("/dashboard");
+              }
+            }}
           >
-            Start Your Journey <ArrowRight className="ml-2" />
+            {!user ? "Get Started" : isSubscribed ? "Dashboard" : "Get Access"} <ArrowRight className="ml-2" />
           </Button>
         </div>
       </section>
