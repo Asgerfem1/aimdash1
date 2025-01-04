@@ -11,6 +11,26 @@ export const supabase = createClient<Database>(
     auth: {
       persistSession: true,
       autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storage: window.localStorage,
     },
   }
 );
+
+// Clear any potentially corrupted session data
+const clearSession = async () => {
+  try {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+    window.localStorage.clear();
+  } catch (error) {
+    console.error('Error clearing session:', error);
+  }
+};
+
+// If there's a session error, clear it
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_OUT' || (event === 'TOKEN_REFRESHED' && !session)) {
+    clearSession();
+  }
+});
