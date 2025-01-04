@@ -49,16 +49,15 @@ serve(async (req) => {
     let customer_id = undefined;
     if (customers.data.length > 0) {
       customer_id = customers.data[0].id;
-      // Check if already subscribed
-      const subscriptions = await stripe.subscriptions.list({
-        customer: customers.data[0].id,
-        status: 'active',
-        price: 'price_1QdHkRCrd02GcI0rC2Vmj6Kn',
-        limit: 1,
-      });
+      // Check if already purchased
+      const { data: existingPurchase } = await supabaseClient
+        .from('user_purchases')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      if (subscriptions.data.length > 0) {
-        throw new Error("You're already subscribed!");
+      if (existingPurchase) {
+        throw new Error("You've already purchased access!");
       }
     }
 
@@ -72,9 +71,12 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      mode: 'payment', // Changed from 'subscription' to 'payment' since this appears to be a one-time payment
+      mode: 'payment',
       success_url: `${req.headers.get('origin')}/dashboard`,
       cancel_url: `${req.headers.get('origin')}/`,
+      metadata: {
+        user_id: user.id,
+      },
     });
 
     console.log('Checkout session created:', session.id);
@@ -91,7 +93,7 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400, // Changed from 500 to 400 for client errors
+        status: 400,
       }
     );
   }
