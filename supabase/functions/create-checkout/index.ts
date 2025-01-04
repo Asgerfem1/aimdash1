@@ -38,12 +38,12 @@ serve(async (req) => {
       httpClient: Stripe.createFetchHttpClient(),
     });
 
-    // Create a checkout session
+    // Create a checkout session with the new price ID
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
         {
-          price: "price_1QdHkRCrd02GcI0rC2Vmj6Kn",
+          price: "price_1QdIJACrd02GcI0rumqGSNFM",
           quantity: 1,
         },
       ],
@@ -52,7 +52,7 @@ serve(async (req) => {
       cancel_url: `${req.headers.get("origin")}/#pricing`,
       client_reference_id: user.id,
       metadata: {
-        user_id: user.id, // Store user ID in metadata for webhook
+        user_id: user.id,
       },
     });
 
