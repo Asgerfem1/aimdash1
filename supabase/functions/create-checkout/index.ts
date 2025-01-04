@@ -57,7 +57,13 @@ serve(async (req) => {
         .maybeSingle();
 
       if (existingPurchase) {
-        throw new Error("You've already purchased access!");
+        return new Response(
+          JSON.stringify({ error: "You've already purchased access!" }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 400,
+          }
+        );
       }
     }
 
@@ -72,39 +78,12 @@ serve(async (req) => {
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.get('origin')}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${req.headers.get('origin')}/?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get('origin')}/`,
       metadata: {
         user_id: user.id,
       },
     });
-
-    // Create a function to check session status and create purchase record
-    const checkSessionAndCreatePurchase = async (sessionId: string) => {
-      try {
-        const session = await stripe.checkout.sessions.retrieve(sessionId);
-        if (session.payment_status === 'paid') {
-          const supabaseAdmin = createClient(
-            Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
-          );
-
-          await supabaseAdmin
-            .from('user_purchases')
-            .insert({ user_id: user.id });
-
-          return true;
-        }
-      } catch (error) {
-        console.error('Error checking session:', error);
-      }
-      return false;
-    };
-
-    // Set up a timeout to check the session status
-    setTimeout(async () => {
-      await checkSessionAndCreatePurchase(session.id);
-    }, 5000); // Check after 5 seconds
 
     console.log('Checkout session created:', session.id);
     return new Response(
@@ -120,7 +99,7 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
+        status: 400, // Changed from 500 to 400 for better error handling
       }
     );
   }

@@ -36,8 +36,15 @@ export const Navigation = () => {
   });
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate("/");
+      toast.success("Successfully logged out");
+    } catch (error) {
+      console.error('Error during logout:', error);
+      toast.error("Failed to log out");
+    }
   };
 
   const handleDashboardClick = async () => {
@@ -57,16 +64,21 @@ export const Navigation = () => {
         throw new Error('No access token found');
       }
 
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
+      const response = await supabase.functions.invoke('create-checkout', {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
       });
-      
-      if (error) throw error;
-      if (!data?.url) throw new Error('No checkout URL returned');
 
-      window.location.href = data.url;
+      if (response.error) {
+        throw new Error(response.error.message || 'Failed to create checkout session');
+      }
+
+      if (!response.data?.url) {
+        throw new Error('No checkout URL returned');
+      }
+
+      window.location.href = response.data.url;
     } catch (error) {
       console.error('Error:', error);
       toast.error(error.message || "Failed to start checkout process");
