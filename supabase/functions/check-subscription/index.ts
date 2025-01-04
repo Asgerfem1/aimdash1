@@ -23,7 +23,7 @@ serve(async (req) => {
     // Create Supabase client with admin privileges
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', // Using service role key for admin access
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
     // Get the JWT token
@@ -32,35 +32,30 @@ serve(async (req) => {
     // Get the user data
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token)
     
-    if (userError) {
+    if (userError || !user) {
       console.error('Error getting user data:', userError)
       throw new Error('Error getting user data')
     }
 
-    if (!user) {
-      console.error('No user found')
-      throw new Error('No user found')
-    }
-
-    console.log('Successfully got user data:', { userId: user.id })
+    console.log('Checking purchase for user:', user.id)
 
     // Check if user has purchased access
-    const { data: purchaseData, error: purchaseError } = await supabaseAdmin
+    const { data: purchases, error: purchaseError } = await supabaseAdmin
       .from('user_purchases')
       .select('*')
       .eq('user_id', user.id)
-      .single()
 
     if (purchaseError) {
       console.error('Error checking purchase:', purchaseError)
+      throw new Error('Error checking purchase status')
     }
 
-    console.log('Purchase check result:', { hasPurchase: !!purchaseData })
+    const hasPurchase = purchases && purchases.length > 0
+    console.log('Purchase status:', { userId: user.id, hasPurchase, purchaseCount: purchases?.length })
 
-    // Return the subscription status
     return new Response(
       JSON.stringify({ 
-        subscribed: !!purchaseData 
+        subscribed: hasPurchase
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
