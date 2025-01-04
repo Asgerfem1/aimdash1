@@ -68,7 +68,7 @@ export const MobileMenu = ({
               className="justify-start"
               onClick={onSignUp}
             >
-              Sign Up
+              Get Started
             </Button>
           </>
         )}

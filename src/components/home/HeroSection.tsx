@@ -112,6 +112,12 @@ export const HeroSection = () => {
     }
   };
 
+  const getButtonText = () => {
+    if (!user) return "Get Started";
+    if (hasPurchased) return "Go to Dashboard";
+    return "Buy Now";
+  };
+
   return (
     <section className="relative bg-gradient-to-b from-primary-100 to-white pt-32 pb-20 px-4 md:pt-40 overflow-hidden">
       {/* Background Graphics */}
@@ -150,7 +156,7 @@ export const HeroSection = () => {
             className="text-lg px-8 font-outfit"
             onClick={handleAction}
           >
-            {hasPurchased ? "Go to Dashboard" : "Buy Now"} <ArrowRight className="ml-2" />
+            {getButtonText()} <ArrowRight className="ml-2" />
           </Button>
         </div>
       </div>
