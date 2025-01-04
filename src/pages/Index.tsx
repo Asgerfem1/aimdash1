@@ -8,10 +8,25 @@ import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 const Index = () => {
   const navigate = useNavigate();
   const user = useUser();
+
+  const { data: hasPurchased } = useQuery({
+    queryKey: ['userPurchase', user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data } = await supabase
+        .from('user_purchases')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      return !!data;
+    },
+    enabled: !!user,
+  });
 
   const handleCheckout = async () => {
     if (!user) {
@@ -121,8 +136,11 @@ const Index = () => {
                 <Button 
                   className="w-full"
                   onClick={handleCheckout}
+                  disabled={hasPurchased}
                 >
-                  Get Started
+                  {!user ? "Get Started" : 
+                   hasPurchased ? "Already Purchased" : 
+                   "Purchase Access"}
                 </Button>
               </CardContent>
             </Card>
@@ -143,8 +161,11 @@ const Index = () => {
             size="lg" 
             className="text-lg px-8"
             onClick={handleCheckout}
+            disabled={hasPurchased}
           >
-            Start Your Journey <ArrowRight className="ml-2" />
+            {!user ? "Start Your Journey" : 
+             hasPurchased ? "Access Your Dashboard" : 
+             "Purchase Access"} <ArrowRight className="ml-2" />
           </Button>
         </div>
       </section>

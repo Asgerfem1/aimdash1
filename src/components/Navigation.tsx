@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { useQuery } from "@tanstack/react-query";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,6 +11,21 @@ export const Navigation = () => {
   const location = useLocation();
   const supabase = useSupabaseClient();
   const user = useUser();
+
+  // Query to check if user has purchased access
+  const { data: hasPurchased } = useQuery({
+    queryKey: ['userPurchase', user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data } = await supabase
+        .from('user_purchases')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      return !!data;
+    },
+    enabled: !!user,
+  });
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -70,7 +86,9 @@ export const Navigation = () => {
             </button>
             {user ? (
               <>
-                <Button onClick={() => navigate("/dashboard")}>Dashboard</Button>
+                {hasPurchased && (
+                  <Button onClick={() => navigate("/dashboard")}>Dashboard</Button>
+                )}
                 <Button variant="outline" onClick={handleLogout}>
                   Logout
                 </Button>
@@ -111,15 +129,17 @@ export const Navigation = () => {
               </button>
               {user ? (
                 <>
-                  <Button
-                    className="justify-start"
-                    onClick={() => {
-                      navigate("/dashboard");
-                      setIsMenuOpen(false);
-                    }}
-                  >
-                    Dashboard
-                  </Button>
+                  {hasPurchased && (
+                    <Button
+                      className="justify-start"
+                      onClick={() => {
+                        navigate("/dashboard");
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      Dashboard
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     className="justify-start"
