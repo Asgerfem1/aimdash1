@@ -12,7 +12,7 @@ const SignUp = () => {
 
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      navigate("/?scroll=pricing");
     }
   }, [user, navigate]);
 

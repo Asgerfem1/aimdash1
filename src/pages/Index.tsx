@@ -2,17 +2,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, CheckCircle2, BarChart3, Target } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
   const user = useUser();
   const supabase = useSupabaseClient();
+  const location = useLocation();
 
   // Query to check if user has purchased
   const { data: hasPurchased } = useQuery({
@@ -23,7 +25,7 @@ const Index = () => {
         .from('user_purchases')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
       if (error) {
         console.error('Error checking purchase status:', error);
@@ -33,6 +35,21 @@ const Index = () => {
     },
     enabled: !!user,
   });
+
+  useEffect(() => {
+    // Check for scroll parameter
+    const searchParams = new URLSearchParams(location.search);
+    const scrollTo = searchParams.get('scroll');
+    
+    if (scrollTo === 'pricing') {
+      const element = document.getElementById('pricing');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+        // Clean up the URL
+        navigate('/', { replace: true });
+      }
+    }
+  }, [location.search, navigate]);
 
   const features = [
     {
