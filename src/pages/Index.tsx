@@ -3,16 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, CheckCircle2, BarChart3, Target } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
 import { useNavigate } from "react-router-dom";
-import { useUser, useSessionContext } from "@supabase/auth-helpers-react";
+import { useUser } from "@supabase/auth-helpers-react";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
 
 const Index = () => {
   const navigate = useNavigate();
   const user = useUser();
-  const { session } = useSessionContext();
 
   const features = [
     {
@@ -46,32 +43,6 @@ const Index = () => {
       "Progress notifications",
       "Custom categories"
     ],
-  };
-
-  const handleCheckout = async () => {
-    try {
-      if (!session) {
-        navigate("/signup");
-        return;
-      }
-
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        method: 'POST',
-      });
-
-      if (error) throw error;
-
-      if (data?.sessionId) {
-        window.location.href = `https://checkout.stripe.com/c/pay/${data.sessionId}`;
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to initiate checkout. Please try again.",
-        variant: "destructive",
-      });
-    }
   };
 
   return (
@@ -126,7 +97,7 @@ const Index = () => {
                 </ul>
                 <Button 
                   className="w-full"
-                  onClick={handleCheckout}
+                  onClick={() => navigate(user ? "/dashboard" : "/signup")}
                 >
                   Get Started
                 </Button>
@@ -148,7 +119,7 @@ const Index = () => {
           <Button 
             size="lg" 
             className="text-lg px-8"
-            onClick={handleCheckout}
+            onClick={() => navigate(user ? "/dashboard" : "/signup")}
           >
             Start Your Journey <ArrowRight className="ml-2" />
           </Button>
