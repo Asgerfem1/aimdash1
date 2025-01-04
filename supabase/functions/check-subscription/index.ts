@@ -47,16 +47,22 @@ serve(async (req) => {
       )
     }
 
-    const subscriptions = await stripe.subscriptions.list({
+    // Look for successful payments for this price
+    const payments = await stripe.paymentIntents.list({
       customer: customers.data[0].id,
-      status: 'active',
-      price: 'price_1QdHkRCrd02GcI0rC2Vmj6Kn',
-      limit: 1
-    })
+      limit: 100
+    });
+
+    // Check if any payment was successful for our specific price
+    const hasValidPayment = payments.data.some(payment => {
+      return payment.status === 'succeeded' && 
+             payment.amount === 2400 && // $24.00 in cents
+             payment.currency === 'usd';
+    });
 
     return new Response(
       JSON.stringify({ 
-        subscribed: subscriptions.data.length > 0,
+        subscribed: hasValidPayment,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
