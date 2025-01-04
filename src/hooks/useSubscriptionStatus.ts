@@ -8,25 +8,47 @@ export const useSubscriptionStatus = () => {
   const supabase = useSupabaseClient();
   const user = useUser();
 
-  const { data } = useQuery({
+  const { data, isError } = useQuery({
     queryKey: ['subscription'],
     queryFn: async () => {
       if (!user) return { subscribed: false };
-      const { data, error } = await supabase.functions.invoke('check-subscription');
-      if (error) throw error;
-      return data;
+      
+      try {
+        const { data, error } = await supabase.functions.invoke('check-subscription', {
+          body: { user_id: user.id },
+        });
+        
+        if (error) {
+          console.error('Subscription check error:', error);
+          throw error;
+        }
+        
+        return data;
+      } catch (error) {
+        console.error('Subscription check error:', error);
+        return { subscribed: false };
+      }
     },
     enabled: !!user,
+    retry: 1,
   });
 
   const handleDashboardClick = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
     if (data?.subscribed) {
       navigate("/dashboard");
       return;
     }
 
     try {
-      const { data: checkoutData, error } = await supabase.functions.invoke('create-checkout-session');
+      const { data: checkoutData, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { user_id: user.id },
+      });
+      
       if (error) throw error;
       
       if (checkoutData?.url) {
@@ -38,5 +60,8 @@ export const useSubscriptionStatus = () => {
     }
   };
 
-  return { data, handleDashboardClick };
+  return { 
+    data: isError ? { subscribed: false } : data, 
+    handleDashboardClick 
+  };
 };

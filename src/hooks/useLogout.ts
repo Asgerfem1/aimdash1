@@ -8,18 +8,21 @@ export const useLogout = () => {
 
   const handleLogout = async () => {
     try {
+      // First clear any existing session
+      await supabase.auth.clearSession();
+      
+      // Then sign out
       const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Logout error:", error);
-        throw error;
-      }
+      if (error) throw error;
       
       // Navigate to homepage and replace the current history entry
       navigate("/", { replace: true });
       toast.success("Logged out successfully");
     } catch (error: any) {
       console.error("Logout error:", error);
-      toast.error(error.message || "Failed to log out");
+      // Even if there's an error, we should still redirect to home
+      navigate("/", { replace: true });
+      toast.error("There was an issue logging out, but you've been redirected home");
     }
   };
 

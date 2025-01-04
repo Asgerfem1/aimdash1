@@ -35,31 +35,19 @@ serve(async (req) => {
       }
     );
 
-    // Get the JWT token
-    const token = authHeader.replace('Bearer ', '');
-    
-    console.log('Attempting to get user data...');
-    
-    // Get the user data using the admin client
-    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
-    
-    if (userError) {
-      console.error('Error getting user data:', userError);
-      throw new Error('Error getting user data');
+    // Get request body
+    const { user_id } = await req.json();
+    if (!user_id) {
+      throw new Error('No user_id provided');
     }
 
-    if (!user) {
-      console.error('No user found');
-      throw new Error('No user found');
-    }
-
-    console.log('Successfully retrieved user data for ID:', user.id);
+    console.log('Checking purchases for user:', user_id);
 
     // Check if user has purchased access
     const { data: purchases, error: purchaseError } = await supabaseAdmin
       .from('user_purchases')
       .select('*')
-      .eq('user_id', user.id);
+      .eq('user_id', user_id);
 
     if (purchaseError) {
       console.error('Error checking purchase:', purchaseError);
@@ -67,7 +55,7 @@ serve(async (req) => {
     }
 
     const hasPurchase = purchases && purchases.length > 0;
-    console.log('Purchase status:', { userId: user.id, hasPurchase, purchaseCount: purchases?.length });
+    console.log('Purchase status:', { userId: user_id, hasPurchase, purchaseCount: purchases?.length });
 
     return new Response(
       JSON.stringify({ 
