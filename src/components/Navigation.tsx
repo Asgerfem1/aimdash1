@@ -37,11 +37,10 @@ export const Navigation = () => {
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
-      // Only navigate after successful logout
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate("/");
       toast.success("Successfully logged out");
-      // Use replace instead of navigate to prevent history stack issues
-      navigate("/", { replace: true });
     } catch (error) {
       console.error('Error during logout:', error);
       toast.error("Failed to log out");
