@@ -6,24 +6,10 @@ import { useNavigate } from "react-router-dom";
 import { useUser } from "@supabase/auth-helpers-react";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 const Index = () => {
   const navigate = useNavigate();
   const user = useUser();
-
-  const { data: subscriptionData } = useQuery({
-    queryKey: ['subscription'],
-    queryFn: async () => {
-      if (!user) return { subscribed: false };
-      const { data, error } = await supabase.functions.invoke('check-subscription');
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
 
   const features = [
     {
@@ -57,36 +43,6 @@ const Index = () => {
       "Progress notifications",
       "Custom categories"
     ],
-  };
-
-  const handlePricingClick = async () => {
-    if (!user) {
-      navigate('/signup');
-      return;
-    }
-
-    if (subscriptionData?.subscribed) {
-      navigate('/dashboard');
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout-session');
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } catch (error: any) {
-      console.error('Checkout error:', error);
-      toast.error(error.message || 'Failed to start checkout process');
-    }
-  };
-
-  const getButtonText = () => {
-    if (!user) return "Get Started";
-    if (subscriptionData?.subscribed) return "Dashboard";
-    return "Buy Access";
   };
 
   return (
@@ -141,9 +97,9 @@ const Index = () => {
                 </ul>
                 <Button 
                   className="w-full"
-                  onClick={handlePricingClick}
+                  onClick={() => navigate(user ? "/dashboard" : "/signup")}
                 >
-                  {getButtonText()}
+                  Get Started
                 </Button>
               </CardContent>
             </Card>
@@ -163,9 +119,9 @@ const Index = () => {
           <Button 
             size="lg" 
             className="text-lg px-8"
-            onClick={handlePricingClick}
+            onClick={() => navigate(user ? "/dashboard" : "/signup")}
           >
-            {getButtonText()} <ArrowRight className="ml-2" />
+            Start Your Journey <ArrowRight className="ml-2" />
           </Button>
         </div>
       </section>

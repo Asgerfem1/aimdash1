@@ -2,54 +2,10 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, BarChart3, ChartLine, ChartPie } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "@supabase/auth-helpers-react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 export const HeroSection = () => {
   const navigate = useNavigate();
   const user = useUser();
-
-  const { data: subscriptionData } = useQuery({
-    queryKey: ['subscription'],
-    queryFn: async () => {
-      if (!user) return { subscribed: false };
-      const { data, error } = await supabase.functions.invoke('check-subscription');
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user,
-  });
-
-  const handleCTAClick = async () => {
-    if (!user) {
-      navigate('/signup');
-      return;
-    }
-
-    if (subscriptionData?.subscribed) {
-      navigate('/dashboard');
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase.functions.invoke('create-checkout-session');
-      if (error) throw error;
-      
-      if (data?.url) {
-        window.location.href = data.url;
-      }
-    } catch (error: any) {
-      console.error('Checkout error:', error);
-      toast.error(error.message || 'Failed to start checkout process');
-    }
-  };
-
-  const getButtonText = () => {
-    if (!user) return "Get Started";
-    if (subscriptionData?.subscribed) return "Dashboard";
-    return "Buy Access";
-  };
 
   return (
     <section className="relative bg-gradient-to-b from-primary-100 to-white pt-32 pb-20 px-4 md:pt-40 overflow-hidden">
@@ -87,9 +43,9 @@ export const HeroSection = () => {
           <Button 
             size="lg" 
             className="text-lg px-8 font-outfit"
-            onClick={handleCTAClick}
+            onClick={() => navigate(user ? "/dashboard" : "/signup")}
           >
-            {getButtonText()} <ArrowRight className="ml-2" />
+            Get Started <ArrowRight className="ml-2" />
           </Button>
         </div>
       </div>
