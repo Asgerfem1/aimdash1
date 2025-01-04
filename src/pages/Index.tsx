@@ -124,7 +124,7 @@ const Index = () => {
                   onClick={handleCheckout}
                   disabled={isSubscribed}
                 >
-                  {isSubscribed ? "Already Subscribed" : "Get Started"}
+                  {isSubscribed ? "Already Subscribed" : "Get Access"}
                 </Button>
               </CardContent>
             </Card>
