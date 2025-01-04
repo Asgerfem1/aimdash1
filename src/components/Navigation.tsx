@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { toast } from "sonner";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,8 +13,21 @@ export const Navigation = () => {
   const user = useUser();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Close mobile menu if open
+      setIsMenuOpen(false);
+      
+      // Navigate to homepage and replace the current history entry
+      navigate("/", { replace: true });
+      
+      toast.success("Logged out successfully");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to log out");
+    }
   };
 
   const toggleMenu = () => {
@@ -123,10 +137,7 @@ export const Navigation = () => {
                   <Button
                     variant="outline"
                     className="justify-start"
-                    onClick={() => {
-                      handleLogout();
-                      setIsMenuOpen(false);
-                    }}
+                    onClick={handleLogout}
                   >
                     Logout
                   </Button>
