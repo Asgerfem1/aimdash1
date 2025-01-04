@@ -2,19 +2,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, CheckCircle2, BarChart3, Target } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
   const user = useUser();
   const supabase = useSupabaseClient();
-  const location = useLocation();
 
   // Query to check if user has purchased
   const { data: hasPurchased } = useQuery({
@@ -36,20 +34,38 @@ const Index = () => {
     enabled: !!user,
   });
 
-  useEffect(() => {
-    // Check for scroll parameter
-    const searchParams = new URLSearchParams(location.search);
-    const scrollTo = searchParams.get('scroll');
-    
-    if (scrollTo === 'pricing') {
-      const element = document.getElementById('pricing');
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-        // Clean up the URL
-        navigate('/', { replace: true });
-      }
+  const handleAction = async () => {
+    if (!user) {
+      navigate('/signup');
+      return;
     }
-  }, [location.search, navigate]);
+
+    if (hasPurchased) {
+      navigate('/dashboard');
+      return;
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('No access token found');
+      }
+
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+      
+      if (error) throw error;
+      if (!data?.url) throw new Error('No checkout URL returned');
+
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error(error.message || "Failed to start checkout process");
+    }
+  };
 
   const features = [
     {
@@ -83,42 +99,6 @@ const Index = () => {
       "Progress notifications",
       "Custom categories"
     ],
-  };
-
-  const handleCheckout = async () => {
-    if (!user) {
-      navigate('/signup');
-      return;
-    }
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        throw new Error('No access token found');
-      }
-
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-      
-      if (error) throw error;
-      if (!data?.url) throw new Error('No checkout URL returned');
-
-      window.location.href = data.url;
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error(error.message || "Failed to start checkout process");
-    }
-  };
-
-  const handleAction = () => {
-    if (hasPurchased) {
-      navigate('/dashboard');
-    } else {
-      handleCheckout();
-    }
   };
 
   return (
