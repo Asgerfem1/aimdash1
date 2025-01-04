@@ -53,23 +53,15 @@ const Index = () => {
     }
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${session?.access_token}`,
-          },
-        }
-      );
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        method: 'POST',
+      });
 
-      const { url, error } = await response.json();
-      
-      if (error) throw new Error(error);
-      if (url) {
-        window.location.href = url;
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
       }
     } catch (error) {
       console.error('Error:', error);
