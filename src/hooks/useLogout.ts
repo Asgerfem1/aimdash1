@@ -8,8 +8,17 @@ export const useLogout = () => {
 
   const handleLogout = async () => {
     try {
-      // Sign out from all devices
-      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      // Get current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // If there's no session, just navigate to home
+      if (!session) {
+        navigate("/", { replace: true });
+        return;
+      }
+      
+      // Attempt to sign out
+      const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
       // Navigate to homepage and replace the current history entry
