@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -54,7 +54,16 @@ const Index = () => {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {});
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('No access token found');
+      }
+
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
       
       if (error) throw error;
       if (!data?.url) throw new Error('No checkout URL returned');
@@ -62,11 +71,7 @@ const Index = () => {
       window.location.href = data.url;
     } catch (error) {
       console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to start checkout process",
-        variant: "destructive",
-      });
+      toast.error(error.message || "Failed to start checkout process");
     }
   };
 
