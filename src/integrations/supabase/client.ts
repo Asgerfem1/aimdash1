@@ -49,34 +49,4 @@ supabase.auth.onAuthStateChange((event, session) => {
   }
 });
 
-// Implement request interceptor for performance monitoring
-supabase.rest.interceptors.request.use(async (config) => {
-  config.headers = {
-    ...config.headers,
-    'X-Request-Start': Date.now().toString(),
-  };
-  return config;
-});
-
-// Implement response interceptor for performance monitoring
-supabase.rest.interceptors.response.use(
-  (response) => {
-    const requestStart = parseInt(response.headers.get('X-Request-Start') || '0');
-    const requestDuration = Date.now() - requestStart;
-    
-    // Log slow requests (over 1000ms)
-    if (requestDuration > 1000) {
-      console.warn(`Slow request detected: ${requestDuration}ms`, {
-        url: response.url,
-        duration: requestDuration,
-      });
-    }
-    
-    return response;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
 export default supabase;
