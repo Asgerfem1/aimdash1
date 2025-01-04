@@ -56,18 +56,6 @@ serve(async (req) => {
       },
     });
 
-    // Create a purchase record in the database
-    const { error: purchaseError } = await supabaseClient
-      .from('user_purchases')
-      .insert([
-        { user_id: user.id }
-      ]);
-
-    if (purchaseError) {
-      console.error('Error creating purchase record:', purchaseError);
-      throw new Error('Failed to create purchase record');
-    }
-
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
