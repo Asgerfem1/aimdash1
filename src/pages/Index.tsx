@@ -8,12 +8,10 @@ import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 
 const Index = () => {
   const navigate = useNavigate();
   const user = useUser();
-  const { data: isSubscribed } = useSubscriptionStatus();
 
   const features = [
     {
@@ -55,30 +53,27 @@ const Index = () => {
     }
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { email: user.email }
-      });
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (error) throw error;
-      if (data?.url) {
-        window.location.href = data.url;
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-checkout`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+          },
+        }
+      );
+
+      const { url, error } = await response.json();
+      
+      if (error) throw new Error(error);
+      if (url) {
+        window.location.href = url;
       }
     } catch (error) {
       console.error('Error:', error);
       toast.error("Failed to initiate checkout. Please try again.");
-    }
-  };
-
-  const handleNavigation = () => {
-    if (!user) {
-      navigate("/signup");
-    } else if (isSubscribed) {
-      navigate("/dashboard");
-    } else {
-      const element = document.getElementById('pricing');
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      }
     }
   };
 
@@ -109,41 +104,40 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-4 bg-gray-50">
-        <div className="container mx-auto max-w-6xl">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-primary-700">
-            Simple, One-Time Pricing
-          </h2>
-          <div className="max-w-lg mx-auto">
-            <Card className="border-2 border-primary shadow-xl">
-              <CardContent className="pt-6">
-                <h3 className="text-xl font-bold mb-2">{pricingPlan.name}</h3>
-                <div className="mb-4">
-                  <span className="text-3xl font-bold">{pricingPlan.price}</span>
-                  <span className="text-gray-600"> one-time</span>
-                </div>
-                <p className="text-gray-600 mb-6">{pricingPlan.description}</p>
-                <ul className="space-y-3 mb-6">
-                  {pricingPlan.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className="flex items-center">
-                      <CheckCircle2 className="text-primary mr-2 h-5 w-5" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Button 
-                  className="w-full"
-                  onClick={handleCheckout}
-                  disabled={isSubscribed}
-                >
-                  {isSubscribed ? "Already Subscribed" : "Get Access"}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+  {/* Pricing Section */}
+  <section id="pricing" className="py-20 px-4 bg-gray-50">
+    <div className="container mx-auto max-w-6xl">
+      <h2 className="text-3xl md:text-4xl font-bold text-center mb-16 text-primary-700">
+        Simple, One-Time Pricing
+      </h2>
+      <div className="max-w-lg mx-auto">
+        <Card className="border-2 border-primary shadow-xl">
+          <CardContent className="pt-6">
+            <h3 className="text-xl font-bold mb-2">{pricingPlan.name}</h3>
+            <div className="mb-4">
+              <span className="text-3xl font-bold">{pricingPlan.price}</span>
+              <span className="text-gray-600"> one-time</span>
+            </div>
+            <p className="text-gray-600 mb-6">{pricingPlan.description}</p>
+            <ul className="space-y-3 mb-6">
+              {pricingPlan.features.map((feature, featureIndex) => (
+                <li key={featureIndex} className="flex items-center">
+                  <CheckCircle2 className="text-primary mr-2 h-5 w-5" />
+                  <span>{feature}</span>
+                </li>
+              ))}
+            </ul>
+            <Button 
+              className="w-full"
+              onClick={handleCheckout}
+            >
+              Get Started
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  </section>
 
       <section className="py-20 px-4 bg-gradient-to-b from-white to-primary-100">
         <div className="container mx-auto max-w-6xl text-center">
@@ -156,9 +150,9 @@ const Index = () => {
           <Button 
             size="lg" 
             className="text-lg px-8"
-            onClick={handleNavigation}
+            onClick={() => navigate(user ? "/dashboard" : "/signup")}
           >
-            {!user ? "Get Started" : isSubscribed ? "Dashboard" : "Get Access"} <ArrowRight className="ml-2" />
+            Start Your Journey <ArrowRight className="ml-2" />
           </Button>
         </div>
       </section>
@@ -166,6 +160,7 @@ const Index = () => {
       <Footer />
     </div>
   );
+
 };
 
 export default Index;

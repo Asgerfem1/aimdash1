@@ -49,13 +49,13 @@ serve(async (req) => {
       customer_email: customer_id ? undefined : email,
       line_items: [
         {
-          price: 'price_1QdHkRCrd02GcI0rC2Vmj6Kn',
+          price: 'price_placeholder', // Replace with your actual price ID from Stripe
           quantity: 1,
         },
       ],
-      mode: 'payment',
+      mode: 'payment', // One-time payment
       success_url: `${req.headers.get('origin')}/dashboard`,
-      cancel_url: `${req.headers.get('origin')}`,
+      cancel_url: `${req.headers.get('origin')}/`,
     })
 
     console.log('Payment session created:', session.id)
