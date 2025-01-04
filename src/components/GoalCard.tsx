@@ -17,6 +17,9 @@ interface GoalCardProps {
   progress: number;
   deadline: string | null;
   priority: "High" | "Medium" | "Low";
+  isRecurring?: boolean;
+  recurrenceInterval?: string | null;
+  status: "Not Started" | "In Progress" | "Completed";
   onEdit: (id: string) => void;
 }
 
@@ -26,7 +29,18 @@ const priorityColors = {
   Low: "text-green-500",
 };
 
-export function GoalCard({ id, title, category, progress, deadline, priority, onEdit }: GoalCardProps) {
+export function GoalCard({ 
+  id, 
+  title, 
+  category, 
+  progress, 
+  deadline, 
+  priority,
+  isRecurring,
+  recurrenceInterval,
+  status,
+  onEdit 
+}: GoalCardProps) {
   const queryClient = useQueryClient();
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [isAddingTask, setIsAddingTask] = useState(false);
@@ -124,6 +138,11 @@ export function GoalCard({ id, title, category, progress, deadline, priority, on
           <Badge variant="outline" className="mt-2">
             {category}
           </Badge>
+          {isRecurring && (
+            <Badge variant="secondary" className="ml-2 mt-2">
+              Repeats {recurrenceInterval}
+            </Badge>
+          )}
         </div>
         <div className="flex gap-2">
           <Button
