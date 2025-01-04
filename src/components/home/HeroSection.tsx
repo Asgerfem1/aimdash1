@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, BarChart3, ChartLine, ChartPie } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -9,9 +9,11 @@ export const HeroSection = () => {
   const navigate = useNavigate();
   const user = useUser();
   const supabase = useSupabaseClient();
+  const [searchParams] = useSearchParams();
+  const sessionId = searchParams.get('session_id');
 
   // Query to check if user has purchased with proper caching
-  const { data: hasPurchased } = useQuery({
+  const { data: hasPurchased, refetch } = useQuery({
     queryKey: ['userPurchase', user?.id],
     queryFn: async () => {
       if (!user) return false;
@@ -30,6 +32,51 @@ export const HeroSection = () => {
     enabled: !!user,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
     gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes (previously cacheTime)
+  });
+
+  // Check session status when returning from checkout
+  useQuery({
+    queryKey: ['checkoutSession', sessionId],
+    queryFn: async () => {
+      if (!sessionId || !user) return null;
+
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('No access token found');
+        }
+
+        const { data, error } = await supabase.functions.invoke('verify-session', {
+          body: { sessionId },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+
+        if (error) throw error;
+
+        if (data?.status === 'complete') {
+          // Create purchase record
+          const { error: purchaseError } = await supabase
+            .from('user_purchases')
+            .insert({ user_id: user.id });
+
+          if (purchaseError) throw purchaseError;
+
+          toast.success("Thank you for your purchase! Redirecting to dashboard...");
+          await refetch(); // Refetch purchase status
+          navigate("/dashboard");
+        }
+
+        return data;
+      } catch (error) {
+        console.error('Error verifying session:', error);
+        toast.error("Failed to verify purchase. Please contact support.");
+        return null;
+      }
+    },
+    enabled: !!sessionId && !!user,
+    gcTime: 0, // Don't cache this query
   });
 
   const handleAction = async () => {
