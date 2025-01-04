@@ -37,7 +37,7 @@ serve(async (req) => {
       limit: 1
     })
 
-    const price_id = "price_1QdHkRCrd02GcI0rC2Vmj6Kn"
+    const price_id = "price_1QdIJACrd02GcI0rumqGSNFM"
 
     let customer_id = undefined
     if (customers.data.length > 0) {
@@ -65,8 +65,8 @@ serve(async (req) => {
         },
       ],
       mode: 'subscription',
-      success_url: `${req.headers.get('origin')}/dashboard`,
-      cancel_url: `${req.headers.get('origin')}/dashboard`,
+      success_url: `${req.headers.get('origin')}/`,
+      cancel_url: `${req.headers.get('origin')}/`,
     })
 
     console.log('Payment session created:', session.id)
