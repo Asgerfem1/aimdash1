@@ -14,6 +14,10 @@ export const useSubscriptionStatus = () => {
       if (!user) return { subscribed: false };
       
       try {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) throw sessionError;
+        if (!sessionData.session) return { subscribed: false };
+
         const { data, error } = await supabase.functions.invoke('check-subscription');
         
         if (error) {
