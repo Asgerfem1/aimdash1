@@ -6,10 +6,33 @@ import { useNavigate } from "react-router-dom";
 import { useUser } from "@supabase/auth-helpers-react";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Index = () => {
   const navigate = useNavigate();
   const user = useUser();
+
+  const handleCheckout = async () => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {},
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.location.href = data.url;
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error("Failed to initiate checkout. Please try again.");
+    }
+  };
 
   const features = [
     {
@@ -97,7 +120,7 @@ const Index = () => {
                 </ul>
                 <Button 
                   className="w-full"
-                  onClick={() => navigate(user ? "/dashboard" : "/signup")}
+                  onClick={handleCheckout}
                 >
                   Get Started
                 </Button>
@@ -119,7 +142,7 @@ const Index = () => {
           <Button 
             size="lg" 
             className="text-lg px-8"
-            onClick={() => navigate(user ? "/dashboard" : "/signup")}
+            onClick={handleCheckout}
           >
             Start Your Journey <ArrowRight className="ml-2" />
           </Button>
