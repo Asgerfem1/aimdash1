@@ -36,7 +36,7 @@ serve(async (req) => {
       customer_email: user.email,
       line_items: [
         {
-          price: 'price_1OyQlbLXTXGcOxGLxPBGpLWF', // Replace with your actual Price ID
+          price: 'price_1QdHkRCrd02GcI0rC2Vmj6Kn',
           quantity: 1,
         },
       ],
