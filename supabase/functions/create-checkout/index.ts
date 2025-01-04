@@ -18,6 +18,7 @@ serve(async (req) => {
   )
 
   try {
+    // Get the session or user object
     const authHeader = req.headers.get('Authorization')!
     const token = authHeader.replace('Bearer ', '')
     const { data } = await supabaseClient.auth.getUser(token)
@@ -37,21 +38,9 @@ serve(async (req) => {
       limit: 1
     })
 
-    const price_id = "price_1QdHkRCrd02GcI0rC2Vmj6Kn"
-
     let customer_id = undefined
     if (customers.data.length > 0) {
       customer_id = customers.data[0].id
-      const subscriptions = await stripe.subscriptions.list({
-        customer: customers.data[0].id,
-        status: 'active',
-        price: price_id,
-        limit: 1
-      })
-
-      if (subscriptions.data.length > 0) {
-        throw new Error("Customer already has an active subscription")
-      }
     }
 
     console.log('Creating payment session...')
@@ -60,13 +49,13 @@ serve(async (req) => {
       customer_email: customer_id ? undefined : email,
       line_items: [
         {
-          price: price_id,
+          price: 'price_placeholder', // Replace with your actual price ID from Stripe
           quantity: 1,
         },
       ],
-      mode: 'subscription',
+      mode: 'payment', // One-time payment
       success_url: `${req.headers.get('origin')}/dashboard`,
-      cancel_url: `${req.headers.get('origin')}/dashboard`,
+      cancel_url: `${req.headers.get('origin')}/`,
     })
 
     console.log('Payment session created:', session.id)
