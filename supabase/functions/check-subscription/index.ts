@@ -13,6 +13,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Starting subscription check...');
+
     // Get the authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -20,14 +22,15 @@ serve(async (req) => {
       throw new Error('No authorization header');
     }
 
-    // Create Supabase client with admin privileges
+    // Create Supabase admin client
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
         auth: {
           autoRefreshToken: false,
-          persistSession: false
+          persistSession: false,
+          detectSessionInUrl: false
         }
       }
     );
@@ -35,9 +38,9 @@ serve(async (req) => {
     // Get the JWT token
     const token = authHeader.replace('Bearer ', '');
     
-    console.log('Attempting to get user data with token');
+    console.log('Attempting to get user data...');
     
-    // Get the user data
+    // Get the user data using the admin client
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
     
     if (userError) {
@@ -46,11 +49,11 @@ serve(async (req) => {
     }
 
     if (!user) {
-      console.error('No user found in response');
+      console.error('No user found');
       throw new Error('No user found');
     }
 
-    console.log('Successfully retrieved user data:', { userId: user.id });
+    console.log('Successfully retrieved user data for ID:', user.id);
 
     // Check if user has purchased access
     const { data: purchases, error: purchaseError } = await supabaseAdmin
