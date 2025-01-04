@@ -10,7 +10,7 @@ export const HeroSection = () => {
   const user = useUser();
   const supabase = useSupabaseClient();
 
-  // Query to check if user has purchased
+  // Query to check if user has purchased with proper caching
   const { data: hasPurchased } = useQuery({
     queryKey: ['userPurchase', user?.id],
     queryFn: async () => {
@@ -28,6 +28,8 @@ export const HeroSection = () => {
       return !!data;
     },
     enabled: !!user,
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    cacheTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
   });
 
   const handleAction = async () => {
