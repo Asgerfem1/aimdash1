@@ -20,6 +20,9 @@ export const Navigation = () => {
       // Close mobile menu if open
       setIsMenuOpen(false);
       
+      // Wait a brief moment to ensure the session is cleared
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Navigate to homepage and replace the current history entry
       navigate("/", { replace: true });
       
