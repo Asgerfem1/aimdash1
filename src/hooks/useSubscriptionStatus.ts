@@ -14,11 +14,35 @@ export const useSubscriptionStatus = () => {
       if (!user) return { subscribed: false };
       
       try {
+        // Get fresh session data
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError) throw sessionError;
-        if (!sessionData.session) return { subscribed: false };
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          return { subscribed: false };
+        }
+        
+        if (!sessionData.session) {
+          console.log('No active session found');
+          return { subscribed: false };
+        }
 
-        const { data, error } = await supabase.functions.invoke('check-subscription');
+        // Make sure we have a valid access token
+        const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+        if (refreshError) {
+          console.error('Session refresh error:', refreshError);
+          return { subscribed: false };
+        }
+
+        if (!session) {
+          console.log('No session after refresh');
+          return { subscribed: false };
+        }
+
+        const { data, error } = await supabase.functions.invoke('check-subscription', {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
         
         if (error) {
           console.error('Subscription check error:', error);

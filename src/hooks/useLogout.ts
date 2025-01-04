@@ -8,18 +8,8 @@ export const useLogout = () => {
 
   const handleLogout = async () => {
     try {
-      // Get current session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      // If there's no session, just navigate to home
-      if (!session) {
-        navigate("/", { replace: true });
-        return;
-      }
-      
-      // Attempt to sign out
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // First clear any local session data
+      await supabase.auth.clearSession();
       
       // Navigate to homepage and replace the current history entry
       navigate("/", { replace: true });

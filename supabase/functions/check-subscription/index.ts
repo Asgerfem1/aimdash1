@@ -39,17 +39,12 @@ serve(async (req) => {
     const token = authHeader.replace('Bearer ', '');
     console.log('Got token, verifying user...');
 
-    // Get user data directly from the token
+    // Get user data from the token
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
     
-    if (userError) {
+    if (userError || !user) {
       console.error('Error getting user:', userError);
       throw new Error('Invalid token');
-    }
-
-    if (!user) {
-      console.error('No user found');
-      throw new Error('User not found');
     }
 
     console.log('Successfully got user data, checking purchases...');
