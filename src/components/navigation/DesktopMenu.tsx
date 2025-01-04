@@ -48,7 +48,7 @@ export const DesktopMenu = ({
           <Button variant="outline" onClick={onLogin}>
             Login
           </Button>
-          <Button onClick={onSignUp}>Get Started</Button>
+          <Button onClick={onSignUp}>Sign Up</Button>
         </>
       )}
     </div>
