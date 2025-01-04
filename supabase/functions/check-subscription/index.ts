@@ -37,23 +37,18 @@ serve(async (req) => {
 
     // Get the JWT token
     const token = authHeader.replace('Bearer ', '');
-    console.log('Got token, verifying session...');
+    console.log('Got token, verifying user...');
 
-    // First verify the session
-    const { data: { session }, error: sessionError } = await supabaseAdmin.auth.getSession(token);
+    // Get user data directly from the token
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
     
-    if (sessionError || !session) {
-      console.error('Invalid session:', sessionError);
-      throw new Error('Invalid session');
+    if (userError) {
+      console.error('Error getting user:', userError);
+      throw new Error('Invalid token');
     }
 
-    console.log('Session verified, getting user data...');
-
-    // Get user data from the session
-    const { user } = session;
-
     if (!user) {
-      console.error('No user found in session');
+      console.error('No user found');
       throw new Error('User not found');
     }
 
