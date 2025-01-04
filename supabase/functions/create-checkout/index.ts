@@ -53,9 +53,9 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      mode: 'payment', // One-time payment
+      mode: 'payment',
       success_url: `${req.headers.get('origin')}/dashboard`,
-      cancel_url: `${req.headers.get('origin')}/`,
+      cancel_url: `${req.headers.get('origin')}`,
     })
 
     console.log('Payment session created:', session.id)

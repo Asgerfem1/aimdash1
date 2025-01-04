@@ -69,6 +69,19 @@ const Index = () => {
     }
   };
 
+  const handleNavigation = () => {
+    if (!user) {
+      navigate("/signup");
+    } else if (isSubscribed) {
+      navigate("/dashboard");
+    } else {
+      const element = document.getElementById('pricing');
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen font-outfit">
       <Navigation />
@@ -143,18 +156,7 @@ const Index = () => {
           <Button 
             size="lg" 
             className="text-lg px-8"
-            onClick={() => {
-              if (!user) {
-                navigate("/signup");
-              } else if (!isSubscribed) {
-                const element = document.getElementById('pricing');
-                if (element) {
-                  element.scrollIntoView({ behavior: "smooth" });
-                }
-              } else {
-                navigate("/dashboard");
-              }
-            }}
+            onClick={handleNavigation}
           >
             {!user ? "Get Started" : isSubscribed ? "Dashboard" : "Get Access"} <ArrowRight className="ml-2" />
           </Button>
