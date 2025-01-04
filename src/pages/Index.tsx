@@ -53,6 +53,13 @@ const Index = () => {
     }
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Please sign in to continue");
+        navigate("/signup");
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('create-checkout', {
         method: 'POST',
       });

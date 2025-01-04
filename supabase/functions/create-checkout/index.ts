@@ -12,12 +12,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders })
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-  )
-
   try {
+    // Initialize Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', // Using service role key for admin access
+    )
+
     // Get the authorization header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
@@ -27,7 +28,7 @@ serve(async (req) => {
     // Get the JWT token from the authorization header
     const token = authHeader.replace('Bearer ', '')
     
-    // Get the user data
+    // Get the user data using getUser
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
     
     if (userError) {
