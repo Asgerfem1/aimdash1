@@ -72,7 +72,7 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      mode: 'subscription',
+      mode: 'payment', // Changed from 'subscription' to 'payment' since this appears to be a one-time payment
       success_url: `${req.headers.get('origin')}/dashboard`,
       cancel_url: `${req.headers.get('origin')}/`,
     });
