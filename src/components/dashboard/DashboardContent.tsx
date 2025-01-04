@@ -2,12 +2,14 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardStats } from "@/components/DashboardStats";
-import { GoalCard } from "@/components/goal/GoalCard";
+import { GoalCard } from "@/components/GoalCard";
 import { GoalDialog } from "@/components/GoalDialog";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { GoalFilters } from "@/components/dashboard/GoalFilters";
 import { toast } from "sonner";
 import { isWithinInterval, addDays, addWeeks, addMonths, parseISO } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Target } from "lucide-react";
 
 export function DashboardContent() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -163,9 +165,18 @@ export function DashboardContent() {
 
         {isLoading ? (
           <div className="text-center text-gray-600">Loading goals...</div>
-        ) : goals?.length === 0 ? (
-          <div className="text-center text-gray-600">
-            No goals yet. Click the Add Goal button to get started!
+        ) : !goals || goals.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
+              <Target className="w-8 h-8 text-primary" />
+            </div>
+            <h3 className="text-xl font-semibold mb-2">No goals yet</h3>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Start by creating your first goal. Break down big objectives into manageable tasks and track your progress.
+            </p>
+            <Button onClick={handleAddNew} size="lg">
+              Create Your First Goal
+            </Button>
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
