@@ -7,11 +7,32 @@ import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 const Index = () => {
   const navigate = useNavigate();
   const user = useUser();
   const supabase = useSupabaseClient();
+
+  // Query to check if user has purchased
+  const { data: hasPurchased } = useQuery({
+    queryKey: ['userPurchase', user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data, error } = await supabase
+        .from('user_purchases')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) {
+        console.error('Error checking purchase status:', error);
+        return false;
+      }
+      return !!data;
+    },
+    enabled: !!user,
+  });
 
   const features = [
     {
@@ -75,6 +96,14 @@ const Index = () => {
     }
   };
 
+  const handleAction = () => {
+    if (hasPurchased) {
+      navigate('/dashboard');
+    } else {
+      handleCheckout();
+    }
+  };
+
   return (
     <div className="min-h-screen font-outfit">
       <Navigation />
@@ -127,9 +156,9 @@ const Index = () => {
                 </ul>
                 <Button 
                   className="w-full"
-                  onClick={handleCheckout}
+                  onClick={handleAction}
                 >
-                  Get Started
+                  {hasPurchased ? "Go to Dashboard" : "Buy Now"}
                 </Button>
               </CardContent>
             </Card>
@@ -149,9 +178,9 @@ const Index = () => {
           <Button 
             size="lg" 
             className="text-lg px-8"
-            onClick={handleCheckout}
+            onClick={handleAction}
           >
-            Start Your Journey <ArrowRight className="ml-2" />
+            {hasPurchased ? "Go to Dashboard" : "Buy Now"} <ArrowRight className="ml-2" />
           </Button>
         </div>
       </section>

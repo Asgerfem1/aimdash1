@@ -1,11 +1,67 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, BarChart3, ChartLine, ChartPie } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useUser } from "@supabase/auth-helpers-react";
+import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const HeroSection = () => {
   const navigate = useNavigate();
   const user = useUser();
+  const supabase = useSupabaseClient();
+
+  // Query to check if user has purchased
+  const { data: hasPurchased } = useQuery({
+    queryKey: ['userPurchase', user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data, error } = await supabase
+        .from('user_purchases')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) {
+        console.error('Error checking purchase status:', error);
+        return false;
+      }
+      return !!data;
+    },
+    enabled: !!user,
+  });
+
+  const handleAction = async () => {
+    if (!user) {
+      navigate('/signup');
+      return;
+    }
+
+    if (hasPurchased) {
+      navigate('/dashboard');
+      return;
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('No access token found');
+      }
+
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+      
+      if (error) throw error;
+      if (!data?.url) throw new Error('No checkout URL returned');
+
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error(error.message || "Failed to start checkout process");
+    }
+  };
 
   return (
     <section className="relative bg-gradient-to-b from-primary-100 to-white pt-32 pb-20 px-4 md:pt-40 overflow-hidden">
@@ -43,9 +99,9 @@ export const HeroSection = () => {
           <Button 
             size="lg" 
             className="text-lg px-8 font-outfit"
-            onClick={() => navigate(user ? "/dashboard" : "/signup")}
+            onClick={handleAction}
           >
-            Get Started <ArrowRight className="ml-2" />
+            {hasPurchased ? "Go to Dashboard" : "Buy Now"} <ArrowRight className="ml-2" />
           </Button>
         </div>
       </div>

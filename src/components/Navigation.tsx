@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,9 +13,56 @@ export const Navigation = () => {
   const supabase = useSupabaseClient();
   const user = useUser();
 
+  // Query to check if user has purchased
+  const { data: hasPurchased } = useQuery({
+    queryKey: ['userPurchase', user?.id],
+    queryFn: async () => {
+      if (!user) return false;
+      const { data, error } = await supabase
+        .from('user_purchases')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (error) {
+        console.error('Error checking purchase status:', error);
+        return false;
+      }
+      return !!data;
+    },
+    enabled: !!user,
+  });
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
+  };
+
+  const handleDashboardClick = async () => {
+    if (!hasPurchased) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('No access token found');
+        }
+
+        const { data, error } = await supabase.functions.invoke('create-checkout', {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
+        
+        if (error) throw error;
+        if (!data?.url) throw new Error('No checkout URL returned');
+
+        window.location.href = data.url;
+      } catch (error) {
+        console.error('Error:', error);
+        toast.error(error.message || "Failed to start checkout process");
+      }
+    } else {
+      navigate("/dashboard");
+    }
   };
 
   const toggleMenu = () => {
@@ -70,7 +119,9 @@ export const Navigation = () => {
             </button>
             {user ? (
               <>
-                <Button onClick={() => navigate("/dashboard")}>Dashboard</Button>
+                <Button onClick={handleDashboardClick}>
+                  {hasPurchased ? "Dashboard" : "Buy Now"}
+                </Button>
                 <Button variant="outline" onClick={handleLogout}>
                   Logout
                 </Button>
@@ -114,11 +165,11 @@ export const Navigation = () => {
                   <Button
                     className="justify-start"
                     onClick={() => {
-                      navigate("/dashboard");
+                      handleDashboardClick();
                       setIsMenuOpen(false);
                     }}
                   >
-                    Dashboard
+                    {hasPurchased ? "Dashboard" : "Buy Now"}
                   </Button>
                   <Button
                     variant="outline"
