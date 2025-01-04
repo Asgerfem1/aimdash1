@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Menu } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { useSubscriptionStatus } from "@/hooks/useSubscriptionStatus";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,6 +11,7 @@ export const Navigation = () => {
   const location = useLocation();
   const supabase = useSupabaseClient();
   const user = useUser();
+  const { data: isSubscribed } = useSubscriptionStatus();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -18,6 +20,19 @@ export const Navigation = () => {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleDashboardClick = () => {
+    if (!isSubscribed) {
+      const element = document.getElementById('pricing');
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+      setIsMenuOpen(false);
+    } else {
+      navigate("/dashboard");
+      setIsMenuOpen(false);
+    }
   };
 
   const scrollToSection = (sectionId: string) => {
@@ -70,7 +85,9 @@ export const Navigation = () => {
             </button>
             {user ? (
               <>
-                <Button onClick={() => navigate("/dashboard")}>Dashboard</Button>
+                <Button onClick={handleDashboardClick}>
+                  {isSubscribed ? "Dashboard" : "Get Access"}
+                </Button>
                 <Button variant="outline" onClick={handleLogout}>
                   Logout
                 </Button>
@@ -113,12 +130,9 @@ export const Navigation = () => {
                 <>
                   <Button
                     className="justify-start"
-                    onClick={() => {
-                      navigate("/dashboard");
-                      setIsMenuOpen(false);
-                    }}
+                    onClick={handleDashboardClick}
                   >
-                    Dashboard
+                    {isSubscribed ? "Dashboard" : "Get Access"}
                   </Button>
                   <Button
                     variant="outline"
