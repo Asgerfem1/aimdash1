@@ -9,12 +9,13 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
   const user = useUser();
 
-  const { data: hasPurchased } = useQuery({
+  const { data: hasPurchased, isLoading } = useQuery({
     queryKey: ['userPurchase', user?.id],
     queryFn: async () => {
       if (!user) return false;
@@ -27,6 +28,13 @@ const Index = () => {
     },
     enabled: !!user,
   });
+
+  // Redirect to dashboard if user has purchased
+  useEffect(() => {
+    if (hasPurchased) {
+      navigate('/dashboard');
+    }
+  }, [hasPurchased, navigate]);
 
   const handleCheckout = async () => {
     if (!user) {
@@ -139,7 +147,7 @@ const Index = () => {
                   disabled={hasPurchased}
                 >
                   {!user ? "Get Started" : 
-                   hasPurchased ? "Already Purchased" : 
+                   hasPurchased ? "Access Dashboard" : 
                    "Purchase Access"}
                 </Button>
               </CardContent>
@@ -160,8 +168,8 @@ const Index = () => {
           <Button 
             size="lg" 
             className="text-lg px-8"
-            onClick={handleCheckout}
-            disabled={hasPurchased}
+            onClick={hasPurchased ? () => navigate('/dashboard') : handleCheckout}
+            disabled={isLoading}
           >
             {!user ? "Start Your Journey" : 
              hasPurchased ? "Access Your Dashboard" : 
