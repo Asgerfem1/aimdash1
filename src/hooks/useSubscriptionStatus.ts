@@ -14,9 +14,7 @@ export const useSubscriptionStatus = () => {
       if (!user) return { subscribed: false };
       
       try {
-        const { data, error } = await supabase.functions.invoke('check-subscription', {
-          body: { user_id: user.id },
-        });
+        const { data, error } = await supabase.functions.invoke('check-subscription');
         
         if (error) {
           console.error('Subscription check error:', error);
@@ -24,8 +22,9 @@ export const useSubscriptionStatus = () => {
         }
         
         return data;
-      } catch (error) {
+      } catch (error: any) {
         console.error('Subscription check error:', error);
+        // Return false for subscription status on error
         return { subscribed: false };
       }
     },
@@ -45,9 +44,7 @@ export const useSubscriptionStatus = () => {
     }
 
     try {
-      const { data: checkoutData, error } = await supabase.functions.invoke('create-checkout-session', {
-        body: { user_id: user.id },
-      });
+      const { data: checkoutData, error } = await supabase.functions.invoke('create-checkout-session');
       
       if (error) throw error;
       

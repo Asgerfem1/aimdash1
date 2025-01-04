@@ -35,49 +35,61 @@ serve(async (req) => {
       }
     );
 
-    // Get the JWT token and user data
+    // Get the JWT token
     const token = authHeader.replace('Bearer ', '');
-    console.log('Attempting to get user data from token...');
-    
+    console.log('Got token, attempting to get user data...');
+
+    // Get user data from the token
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
-    
-    if (userError || !user) {
+
+    if (userError) {
       console.error('Error getting user data:', userError);
-      throw new Error('Error getting user data');
+      throw new Error('Invalid authentication token');
     }
 
-    console.log('Successfully retrieved user data for ID:', user.id);
+    if (!user) {
+      console.error('No user found');
+      throw new Error('User not found');
+    }
+
+    console.log('Successfully got user data, checking purchases...');
 
     // Check if user has purchased access
     const { data: purchases, error: purchaseError } = await supabaseAdmin
       .from('user_purchases')
       .select('*')
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .single();
 
     if (purchaseError) {
       console.error('Error checking purchase:', purchaseError);
       throw new Error('Error checking purchase status');
     }
 
-    const hasPurchase = purchases && purchases.length > 0;
-    console.log('Purchase status:', { userId: user.id, hasPurchase, purchaseCount: purchases?.length });
+    console.log('Purchase check complete:', { userId: user.id, hasPurchase: !!purchases });
 
     return new Response(
       JSON.stringify({ 
-        subscribed: hasPurchase
+        subscribed: !!purchases,
+        userId: user.id
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200,
       }
     );
+
   } catch (error) {
     console.error('Function error:', error);
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message || 'Internal server error',
+        details: error.toString()
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
+        status: error.message === 'No authorization header' ? 401 : 500,
       }
     );
   }
