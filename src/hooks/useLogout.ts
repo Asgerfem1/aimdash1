@@ -8,11 +8,8 @@ export const useLogout = () => {
 
   const handleLogout = async () => {
     try {
-      // First clear any existing session
-      await supabase.auth.clearSession();
-      
-      // Then sign out
-      const { error } = await supabase.auth.signOut();
+      // Sign out from all devices
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
       if (error) throw error;
       
       // Navigate to homepage and replace the current history entry

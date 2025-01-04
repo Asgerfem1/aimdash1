@@ -35,19 +35,24 @@ serve(async (req) => {
       }
     );
 
-    // Get request body
-    const { user_id } = await req.json();
-    if (!user_id) {
-      throw new Error('No user_id provided');
+    // Get the JWT token and user data
+    const token = authHeader.replace('Bearer ', '');
+    console.log('Attempting to get user data from token...');
+    
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (userError || !user) {
+      console.error('Error getting user data:', userError);
+      throw new Error('Error getting user data');
     }
 
-    console.log('Checking purchases for user:', user_id);
+    console.log('Successfully retrieved user data for ID:', user.id);
 
     // Check if user has purchased access
     const { data: purchases, error: purchaseError } = await supabaseAdmin
       .from('user_purchases')
       .select('*')
-      .eq('user_id', user_id);
+      .eq('user_id', user.id);
 
     if (purchaseError) {
       console.error('Error checking purchase:', purchaseError);
@@ -55,7 +60,7 @@ serve(async (req) => {
     }
 
     const hasPurchase = purchases && purchases.length > 0;
-    console.log('Purchase status:', { userId: user_id, hasPurchase, purchaseCount: purchases?.length });
+    console.log('Purchase status:', { userId: user.id, hasPurchase, purchaseCount: purchases?.length });
 
     return new Response(
       JSON.stringify({ 
