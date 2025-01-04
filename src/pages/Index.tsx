@@ -3,69 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowRight, CheckCircle2, BarChart3, Target } from "lucide-react";
 import { Navigation } from "@/components/Navigation";
 import { useNavigate } from "react-router-dom";
-import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useUser } from "@supabase/auth-helpers-react";
 import { Footer } from "@/components/Footer";
 import { HeroSection } from "@/components/home/HeroSection";
-import { toast } from "sonner";
-import { useQuery } from "@tanstack/react-query";
 
 const Index = () => {
   const navigate = useNavigate();
   const user = useUser();
-  const supabase = useSupabaseClient();
-
-  // Query to check if user has purchased
-  const { data: hasPurchased } = useQuery({
-    queryKey: ['userPurchase', user?.id],
-    queryFn: async () => {
-      if (!user) return false;
-      const { data, error } = await supabase
-        .from('user_purchases')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error checking purchase status:', error);
-        return false;
-      }
-      return !!data;
-    },
-    enabled: !!user,
-  });
-
-  const handleAction = async () => {
-    if (!user) {
-      navigate('/signup');
-      return;
-    }
-
-    if (hasPurchased) {
-      navigate('/dashboard');
-      return;
-    }
-
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.access_token) {
-        throw new Error('No access token found');
-      }
-
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
-      });
-      
-      if (error) throw error;
-      if (!data?.url) throw new Error('No checkout URL returned');
-
-      window.location.href = data.url;
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error(error.message || "Failed to start checkout process");
-    }
-  };
 
   const features = [
     {
@@ -153,9 +97,9 @@ const Index = () => {
                 </ul>
                 <Button 
                   className="w-full"
-                  onClick={handleAction}
+                  onClick={() => navigate(user ? "/dashboard" : "/signup")}
                 >
-                  {hasPurchased ? "Go to Dashboard" : "Buy Now"}
+                  Get Started
                 </Button>
               </CardContent>
             </Card>
@@ -175,9 +119,9 @@ const Index = () => {
           <Button 
             size="lg" 
             className="text-lg px-8"
-            onClick={handleAction}
+            onClick={() => navigate(user ? "/dashboard" : "/signup")}
           >
-            {hasPurchased ? "Go to Dashboard" : "Buy Now"} <ArrowRight className="ml-2" />
+            Start Your Journey <ArrowRight className="ml-2" />
           </Button>
         </div>
       </section>
