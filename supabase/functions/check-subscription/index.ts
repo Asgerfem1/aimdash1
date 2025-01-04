@@ -8,61 +8,49 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
 
-  const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-  )
-
   try {
-    const authHeader = req.headers.get('Authorization')!
+    // Create Supabase client
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    )
+
+    // Get the user's JWT from the request headers
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      throw new Error('No authorization header')
+    }
+
+    // Get the JWT token
     const token = authHeader.replace('Bearer ', '')
-    const { data } = await supabaseClient.auth.getUser(token)
-    const user = data.user
-    const email = user?.email
-
-    if (!email) {
-      throw new Error('No email found')
+    
+    // Get the user data
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token)
+    
+    if (userError || !user) {
+      throw new Error('Error getting user data')
     }
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
-      apiVersion: '2023-10-16',
-    })
+    // Check if user has purchased access
+    const { data: purchaseData, error: purchaseError } = await supabaseClient
+      .from('user_purchases')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
 
-    const customers = await stripe.customers.list({
-      email: email,
-      limit: 1
-    })
-
-    if (customers.data.length === 0) {
-      return new Response(
-        JSON.stringify({ subscribed: false }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
-      )
+    if (purchaseError) {
+      console.error('Error checking purchase:', purchaseError)
     }
 
-    // Look for successful payments for this price
-    const payments = await stripe.paymentIntents.list({
-      customer: customers.data[0].id,
-      limit: 100
-    });
-
-    // Check if any payment was successful for our specific price
-    const hasValidPayment = payments.data.some(payment => {
-      return payment.status === 'succeeded' && 
-             payment.amount === 2400 && // $24.00 in cents
-             payment.currency === 'usd';
-    });
-
+    // If we found a purchase record, the user has access
     return new Response(
       JSON.stringify({ 
-        subscribed: hasValidPayment,
+        subscribed: !!purchaseData 
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
