@@ -42,15 +42,20 @@ serve(async (req) => {
     let customer_id = undefined
     if (customers.data.length > 0) {
       customer_id = customers.data[0].id
-      const subscriptions = await stripe.subscriptions.list({
+      // Check for successful payments instead of subscriptions
+      const payments = await stripe.paymentIntents.list({
         customer: customers.data[0].id,
-        status: 'active',
-        price: price_id,
-        limit: 1
+        limit: 100
       })
 
-      if (subscriptions.data.length > 0) {
-        throw new Error("Customer already has an active subscription")
+      const hasValidPayment = payments.data.some(payment => 
+        payment.status === 'succeeded' && 
+        payment.amount === 2400 && // $24.00 in cents
+        payment.currency === 'usd'
+      )
+
+      if (hasValidPayment) {
+        throw new Error("Customer has already purchased access")
       }
     }
 
@@ -64,7 +69,7 @@ serve(async (req) => {
           quantity: 1,
         },
       ],
-      mode: 'subscription',
+      mode: 'payment', // Changed from 'subscription' to 'payment'
       success_url: `${req.headers.get('origin')}/`,
       cancel_url: `${req.headers.get('origin')}/`,
     })
