@@ -15,21 +15,21 @@ export const Navigation = () => {
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      if (error) {
+        console.error("Logout error:", error);
+        throw error;
+      }
       
       // Close mobile menu if open
       setIsMenuOpen(false);
-      
-      // Wait a brief moment to ensure the session is cleared
-      await new Promise(resolve => setTimeout(resolve, 100));
       
       // Navigate to homepage and replace the current history entry
       navigate("/", { replace: true });
       
       toast.success("Logged out successfully");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Logout error:", error);
-      toast.error("Failed to log out");
+      toast.error(error.message || "Failed to log out");
     }
   };
 
