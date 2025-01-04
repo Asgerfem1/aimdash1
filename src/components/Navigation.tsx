@@ -4,6 +4,7 @@ import { Menu } from "lucide-react";
 import { useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,6 +12,17 @@ export const Navigation = () => {
   const location = useLocation();
   const supabase = useSupabaseClient();
   const user = useUser();
+
+  const { data: subscriptionData } = useQuery({
+    queryKey: ['subscription'],
+    queryFn: async () => {
+      if (!user) return { subscribed: false };
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user,
+  });
 
   const handleLogout = async () => {
     try {
@@ -31,6 +43,30 @@ export const Navigation = () => {
       console.error("Logout error:", error);
       toast.error(error.message || "Failed to log out");
     }
+  };
+
+  const handleDashboardClick = async () => {
+    if (subscriptionData?.subscribed) {
+      navigate("/dashboard");
+      setIsMenuOpen(false);
+    } else {
+      try {
+        const { data, error } = await supabase.functions.invoke('create-checkout-session');
+        if (error) throw error;
+        
+        if (data?.url) {
+          window.location.href = data.url;
+        }
+      } catch (error: any) {
+        console.error('Checkout error:', error);
+        toast.error(error.message || 'Failed to start checkout process');
+      }
+    }
+  };
+
+  const getDashboardButtonText = () => {
+    if (subscriptionData?.subscribed) return "Dashboard";
+    return "Buy Access";
   };
 
   const toggleMenu = () => {
@@ -87,7 +123,7 @@ export const Navigation = () => {
             </button>
             {user ? (
               <>
-                <Button onClick={() => navigate("/dashboard")}>Dashboard</Button>
+                <Button onClick={handleDashboardClick}>{getDashboardButtonText()}</Button>
                 <Button variant="outline" onClick={handleLogout}>
                   Logout
                 </Button>
@@ -130,12 +166,9 @@ export const Navigation = () => {
                 <>
                   <Button
                     className="justify-start"
-                    onClick={() => {
-                      navigate("/dashboard");
-                      setIsMenuOpen(false);
-                    }}
+                    onClick={handleDashboardClick}
                   >
-                    Dashboard
+                    {getDashboardButtonText()}
                   </Button>
                   <Button
                     variant="outline"
