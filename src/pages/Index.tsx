@@ -9,7 +9,6 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -29,16 +28,14 @@ const Index = () => {
     enabled: !!user,
   });
 
-  // Redirect to dashboard if user has purchased
-  useEffect(() => {
-    if (hasPurchased) {
-      navigate('/dashboard');
-    }
-  }, [hasPurchased, navigate]);
-
-  const handleCheckout = async () => {
+  const handleAction = async () => {
     if (!user) {
-      navigate("/login");
+      navigate("/signup");
+      return;
+    }
+
+    if (hasPurchased) {
+      navigate("/dashboard");
       return;
     }
 
@@ -55,6 +52,12 @@ const Index = () => {
       console.error('Error:', error);
       toast.error("Failed to initiate checkout. Please try again.");
     }
+  };
+
+  const getButtonText = () => {
+    if (!user) return "Get Started";
+    if (hasPurchased) return "Go to Dashboard";
+    return "Purchase Access";
   };
 
   const features = [
@@ -94,7 +97,9 @@ const Index = () => {
   return (
     <div className="min-h-screen font-outfit">
       <Navigation />
-      <HeroSection />
+      
+      {/* Pass necessary props to HeroSection */}
+      <HeroSection onAction={handleAction} buttonText={getButtonText()} isLoading={isLoading} />
 
       {/* Features Section */}
       <section id="how-it-works" className="py-20 px-4 bg-white">
@@ -143,12 +148,10 @@ const Index = () => {
                 </ul>
                 <Button 
                   className="w-full"
-                  onClick={handleCheckout}
-                  disabled={hasPurchased}
+                  onClick={handleAction}
+                  disabled={isLoading}
                 >
-                  {!user ? "Get Started" : 
-                   hasPurchased ? "Access Dashboard" : 
-                   "Purchase Access"}
+                  {getButtonText()}
                 </Button>
               </CardContent>
             </Card>
@@ -168,12 +171,10 @@ const Index = () => {
           <Button 
             size="lg" 
             className="text-lg px-8"
-            onClick={hasPurchased ? () => navigate('/dashboard') : handleCheckout}
+            onClick={handleAction}
             disabled={isLoading}
           >
-            {!user ? "Start Your Journey" : 
-             hasPurchased ? "Access Your Dashboard" : 
-             "Purchase Access"} <ArrowRight className="ml-2" />
+            {getButtonText()} <ArrowRight className="ml-2" />
           </Button>
         </div>
       </section>

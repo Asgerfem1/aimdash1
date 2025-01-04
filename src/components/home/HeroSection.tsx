@@ -1,12 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, BarChart3, ChartLine, ChartPie } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { useUser } from "@supabase/auth-helpers-react";
 
-export const HeroSection = () => {
-  const navigate = useNavigate();
-  const user = useUser();
+interface HeroSectionProps {
+  onAction: () => void;
+  buttonText: string;
+  isLoading?: boolean;
+}
 
+export const HeroSection = ({ onAction, buttonText, isLoading }: HeroSectionProps) => {
   return (
     <section className="relative bg-gradient-to-b from-primary-100 to-white pt-32 pb-20 px-4 md:pt-40 overflow-hidden">
       {/* Background Graphics */}
@@ -43,9 +44,10 @@ export const HeroSection = () => {
           <Button 
             size="lg" 
             className="text-lg px-8 font-outfit"
-            onClick={() => navigate(user ? "/dashboard" : "/signup")}
+            onClick={onAction}
+            disabled={isLoading}
           >
-            Get Started <ArrowRight className="ml-2" />
+            {buttonText} <ArrowRight className="ml-2" />
           </Button>
         </div>
       </div>
