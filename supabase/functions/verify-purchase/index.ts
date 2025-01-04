@@ -13,6 +13,24 @@ serve(async (req) => {
   }
 
   try {
+    const { session_id } = await req.json();
+
+    if (!session_id) {
+      throw new Error("No session ID provided");
+    }
+
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
+      apiVersion: "2023-10-16",
+      httpClient: Stripe.createFetchHttpClient(),
+    });
+
+    // Retrieve the session to check its payment status
+    const session = await stripe.checkout.sessions.retrieve(session_id);
+
+    if (session.payment_status !== "paid") {
+      throw new Error("Payment not completed");
+    }
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -25,41 +43,22 @@ serve(async (req) => {
       }
     );
 
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(
-      req.headers.get("Authorization")?.replace("Bearer ", "") ?? ""
-    );
+    // Create purchase record after verifying payment
+    const { error: purchaseError } = await supabaseClient
+      .from('user_purchases')
+      .insert([{ user_id: session.metadata.user_id }]);
 
-    if (userError || !user) {
-      throw new Error("Unauthorized");
+    if (purchaseError) {
+      console.error('Error creating purchase record:', purchaseError);
+      throw new Error('Failed to create purchase record');
     }
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
-      apiVersion: "2023-10-16",
-      httpClient: Stripe.createFetchHttpClient(),
-    });
-
-    // Create a checkout session with the new price ID
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price: "price_1QdIJACrd02GcI0rumqGSNFM",
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: `${req.headers.get("origin")}/verify-purchase?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.get("origin")}/#pricing`,
-      metadata: {
-        user_id: user.id,
-      },
-    });
-
-    return new Response(JSON.stringify({ url: session.url }), {
+    return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
   } catch (error) {
+    console.error('Error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
