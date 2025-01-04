@@ -19,7 +19,7 @@ export const HeroSection = () => {
         .from('user_purchases')
         .select('id')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
       if (error) {
         console.error('Error checking purchase status:', error);
