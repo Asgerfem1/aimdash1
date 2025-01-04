@@ -15,7 +15,7 @@ serve(async (req) => {
   try {
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       {
         auth: {
           autoRefreshToken: false,
@@ -38,6 +38,7 @@ serve(async (req) => {
       httpClient: Stripe.createFetchHttpClient(),
     });
 
+    // Create a checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: [
@@ -50,7 +51,22 @@ serve(async (req) => {
       success_url: `${req.headers.get("origin")}/dashboard`,
       cancel_url: `${req.headers.get("origin")}/#pricing`,
       client_reference_id: user.id,
+      metadata: {
+        user_id: user.id, // Store user ID in metadata for webhook
+      },
     });
+
+    // Create a purchase record in the database
+    const { error: purchaseError } = await supabaseClient
+      .from('user_purchases')
+      .insert([
+        { user_id: user.id }
+      ]);
+
+    if (purchaseError) {
+      console.error('Error creating purchase record:', purchaseError);
+      throw new Error('Failed to create purchase record');
+    }
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
