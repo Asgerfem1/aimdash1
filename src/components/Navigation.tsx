@@ -4,6 +4,7 @@ import { Menu } from "lucide-react";
 import { useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,8 +29,15 @@ export const Navigation = () => {
   });
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('There was an issue logging out');
+    } finally {
+      // Always navigate to home and clear local state
+      navigate("/");
+    }
   };
 
   const toggleMenu = () => {
