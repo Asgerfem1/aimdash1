@@ -89,7 +89,6 @@ const Index = () => {
       "Priority levels",
       "Recurring goals",
       "Visual analytics",
-      "Progress notifications",
       "Custom categories"
     ],
   };
@@ -98,7 +97,6 @@ const Index = () => {
     <div className="min-h-screen font-outfit">
       <Navigation />
       
-      {/* Pass necessary props to HeroSection */}
       <HeroSection onAction={handleAction} buttonText={getButtonText()} isLoading={isLoading} />
 
       {/* Features Section */}
