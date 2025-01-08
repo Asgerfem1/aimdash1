@@ -49,6 +49,7 @@ export function TaskItem({
       if (error) throw error;
     },
     onSuccess: () => {
+      // Invalidate both tasks and goals queries to update the UI
       queryClient.invalidateQueries({ queryKey: ['tasks', goalId] });
       queryClient.invalidateQueries({ queryKey: ['goals'] });
       toast.success('Task deleted successfully');
