@@ -7,6 +7,16 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ content, isBot }: ChatMessageProps) {
+  // Function to process text and preserve formatting
+  const formatText = (text: string) => {
+    return text.split('\n').map((line, index) => (
+      <span key={index}>
+        {line}
+        {index !== text.split('\n').length - 1 && <br />}
+      </span>
+    ));
+  };
+
   return (
     <div
       className={cn(
@@ -22,7 +32,7 @@ export function ChatMessage({ content, isBot }: ChatMessageProps) {
         )}
       </div>
       <div className="flex-1">
-        <p className="text-sm whitespace-pre-wrap">{content}</p>
+        <p className="text-sm whitespace-pre-wrap">{formatText(content)}</p>
       </div>
     </div>
   );
