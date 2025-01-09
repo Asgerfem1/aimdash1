@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LogOut, Target, BarChart } from "lucide-react";
+import { LogOut, Target, BarChart, Bot } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { SidebarProvider } from "@/components/ui/sidebar";
@@ -10,13 +10,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { AnalyticsPage } from "@/components/analytics/AnalyticsPage";
+import { ChatbotPage } from "@/components/chat/ChatbotPage";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const [selectedView, setSelectedView] = useState<'goals' | 'analytics'>('goals');
+  const [selectedView, setSelectedView] = useState<'goals' | 'analytics' | 'chatbot'>('goals');
   const navigate = useNavigate();
   const supabase = useSupabaseClient();
 
@@ -83,12 +84,33 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <p>Analytics</p>
               </TooltipContent>
             </Tooltip>
+
+            {/* Chatbot Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setSelectedView('chatbot')}
+                  className={`p-2 rounded-md transition-colors ${
+                    selectedView === 'chatbot' 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'hover:bg-accent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Bot className="h-5 w-5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                <p>Chatbot</p>
+              </TooltipContent>
+            </Tooltip>
           </TooltipProvider>
         </div>
 
         {/* Main Content */}
         <div className="flex-1 p-8">
-          {selectedView === 'goals' ? children : <AnalyticsPage />}
+          {selectedView === 'goals' ? children : 
+           selectedView === 'analytics' ? <AnalyticsPage /> :
+           <ChatbotPage />}
         </div>
       </div>
     </SidebarProvider>
