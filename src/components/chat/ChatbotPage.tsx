@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Message {
   content: string;
@@ -10,29 +12,37 @@ interface Message {
 export function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([
     {
-      content: "Hello! How can I help you today?",
+      content: "Hello! I'm your goal planning assistant. Share your goal with me, and I'll help you break it down into actionable steps, suggest timelines, and recommend priority levels.",
       isBot: true,
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSendMessage = async (content: string) => {
-    setIsLoading(true);
-    // Add user message
-    setMessages((prev) => [...prev, { content, isBot: false }]);
+    try {
+      setIsLoading(true);
+      // Add user message
+      setMessages((prev) => [...prev, { content, isBot: false }]);
 
-    // TODO: Integrate with actual AI service
-    // For now, just echo back
-    setTimeout(() => {
+      const { data, error } = await supabase.functions.invoke('goal-planning-assistant', {
+        body: { message: content },
+      });
+
+      if (error) throw error;
+
       setMessages((prev) => [
         ...prev,
         {
-          content: `I received your message: "${content}". This is a placeholder response.`,
+          content: data.generatedText,
           isBot: true,
         },
       ]);
+    } catch (error) {
+      console.error('Error:', error);
+      toast.error("Failed to get response from the assistant");
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
