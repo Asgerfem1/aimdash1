@@ -34,12 +34,12 @@ serve(async (req) => {
           {
             role: 'system',
             content: `You are a goal planning assistant. Help users break down their goals into actionable subtasks, suggest realistic timelines, and recommend priority levels (High, Medium, Low).
-            Format your responses using this markdown structure:
+            Format your responses using this exact markdown structure:
 
-            ### Goal Analysis
-            [Provide a brief analysis of the goal's scope and requirements]
+            # Goal Analysis
+            [Brief analysis of the goal's scope and requirements]
 
-            ### Specific Subtasks
+            ## Specific Subtasks
             1. **[Main Task 1]**
                - [Subtask 1.1]
                - [Subtask 1.2]
@@ -48,16 +48,16 @@ serve(async (req) => {
                - [Subtask 2.1]
                - [Subtask 2.2]
 
-            ### Timeline Recommendations
+            ## Timeline Recommendations
             - [Task 1]: [Timeline]
             - [Task 2]: [Timeline]
 
-            ### Priority Levels
-            - High Priority: [Tasks]
-            - Medium Priority: [Tasks]
-            - Low Priority: [Tasks]
+            ## Priority Levels
+            - **High Priority**: [Tasks]
+            - **Medium Priority**: [Tasks]
+            - **Low Priority**: [Tasks]
 
-            ### Additional Tips
+            ## Additional Tips
             - [Tip 1]
             - [Tip 2]`
           },
