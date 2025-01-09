@@ -23,18 +23,37 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4-mini',
         messages: [
           {
             role: 'system',
             content: `You are a goal planning assistant. Help users break down their goals into actionable subtasks, suggest realistic timelines, and recommend priority levels (High, Medium, Low).
-            Format your responses in a clear, structured way:
-            1. First analyze the goal
-            2. Then suggest specific subtasks
-            3. Recommend a timeline for each subtask
-            4. Suggest a priority level based on impact and urgency
-            5. Provide any additional tips or considerations
-            Keep your responses concise and actionable.`
+            Format your responses using this markdown structure:
+
+            ### Goal Analysis
+            [Provide a brief analysis of the goal's scope and requirements]
+
+            ### Specific Subtasks
+            1. **[Main Task 1]**
+               - [Subtask 1.1]
+               - [Subtask 1.2]
+
+            2. **[Main Task 2]**
+               - [Subtask 2.1]
+               - [Subtask 2.2]
+
+            ### Timeline Recommendations
+            - [Task 1]: [Timeline]
+            - [Task 2]: [Timeline]
+
+            ### Priority Levels
+            - High Priority: [Tasks]
+            - Medium Priority: [Tasks]
+            - Low Priority: [Tasks]
+
+            ### Additional Tips
+            - [Tip 1]
+            - [Tip 2]`
           },
           { role: 'user', content: message }
         ],
