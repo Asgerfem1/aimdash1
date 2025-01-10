@@ -25,7 +25,7 @@ export function ChatbotPage() {
       setMessages((prev) => [...prev, { content, isBot: false }]);
 
       const { data, error } = await supabase.functions.invoke('goal-planning-assistant', {
-        body: { message: content },
+        body: { prompt: content }, // Changed from 'message' to 'prompt'
       });
 
       if (error) throw error;
