@@ -14,13 +14,15 @@ serve(async (req) => {
   }
 
   try {
-    const { message } = await req.json();
-
     if (!openAIApiKey) {
-      throw new Error('OpenAI API key is not configured');
+      throw new Error('OPENAI_API_KEY is not set');
     }
 
-    console.log('Sending request to OpenAI with message:', message);
+    const { prompt } = await req.json();
+
+    if (!prompt) {
+      throw new Error('No prompt provided');
+    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -33,44 +35,29 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are a goal planning assistant. Help users break down their goals into actionable subtasks, suggest realistic timelines, and recommend priority levels (High, Medium, Low).
-            Format your responses using this exact markdown structure:
-
-            # Goal Analysis
-            [Brief analysis of the goal's scope and requirements]
-
-            ## Specific Subtasks
-            1. **[Main Task 1]**
-               - [Subtask 1.1]
-               - [Subtask 1.2]
-
-            2. **[Main Task 2]**
-               - [Subtask 2.1]
-               - [Subtask 2.2]
-
-            ## Timeline Recommendations
-            - [Task 1]: [Timeline]
-            - [Task 2]: [Timeline]
-
-            ## Priority Levels
-            - **High Priority**: [Tasks]
-            - **Medium Priority**: [Tasks]
-            - **Low Priority**: [Tasks]
-
-            ## Additional Tips
-            - [Tip 1]
-            - [Tip 2]`
+            content: 'You are a goal planning assistant. Help users break down their goals into actionable subtasks, suggest realistic timelines, and recommend priority levels (High, Medium, Low). Your responses should be formatted in markdown, but do not include the literal markdown symbols in your explanations. Instead, use proper markdown syntax for headings, lists, and emphasis.'
           },
-          { role: 'user', content: message }
+          {
+            role: 'user',
+            content: prompt
+          }
         ],
+        temperature: 0.7,
+        max_tokens: 1000,
       }),
     });
 
-    const data = await response.json();
-    console.log('OpenAI API response:', data);
+    if (!response.ok) {
+      const error = await response.json();
+      console.error('OpenAI API error:', error);
+      throw new Error(`Invalid response from OpenAI API: ${JSON.stringify(error)}`);
+    }
 
-    if (!data || !data.choices || !data.choices[0] || !data.choices[0].message) {
-      throw new Error('Invalid response from OpenAI API: ' + JSON.stringify(data));
+    const data = await response.json();
+    
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+      console.error('Unexpected API response structure:', data);
+      throw new Error('Invalid response structure from OpenAI API');
     }
 
     const generatedText = data.choices[0].message.content;
@@ -78,14 +65,18 @@ serve(async (req) => {
     return new Response(JSON.stringify({ generatedText }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+
   } catch (error) {
     console.error('Error in goal-planning-assistant function:', error);
-    return new Response(JSON.stringify({ 
-      error: error.message,
-      details: error.toString()
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ 
+        error: error.message,
+        details: error.toString()
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });
