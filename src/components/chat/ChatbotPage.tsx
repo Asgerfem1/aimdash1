@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { useUser } from "@supabase/auth-helpers-react";
 
 interface Message {
@@ -208,7 +208,7 @@ export function ChatbotPage() {
           <Plus className="h-4 w-4 mr-2" />
           New Chat
         </Button>
-        <ScrollArea className="flex-1" orientation="horizontal">
+        <ScrollArea className="flex-1">
           <div className="flex space-x-4 px-1 py-1">
             {chats.map((chat) => (
               <div
@@ -263,6 +263,7 @@ export function ChatbotPage() {
               </div>
             ))}
           </div>
+          <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </div>
       <div className="flex-1 overflow-y-auto space-y-4 p-4">
