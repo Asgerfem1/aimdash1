@@ -202,24 +202,24 @@ export function ChatbotPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] w-full">
-      <div className="border-b p-4 flex items-center space-x-4">
-        <Button onClick={createNewChat} variant="outline" size="sm">
+    <div className="flex flex-col h-[calc(100vh-8rem)] max-w-full">
+      <div className="border-b p-4 flex items-center gap-4">
+        <Button onClick={createNewChat} variant="outline" size="sm" className="shrink-0">
           <Plus className="h-4 w-4 mr-2" />
           New Chat
         </Button>
-        <ScrollArea className="flex-1">
-          <div className="flex space-x-4 px-1 py-1">
+        <ScrollArea className="w-[600px]">
+          <div className="flex gap-2">
             {chats.map((chat) => (
               <div
                 key={chat.id}
-                className={`flex items-center space-x-2 px-3 py-2 rounded-md cursor-pointer shrink-0 ${
+                className={`flex items-center gap-2 px-3 py-2 rounded-md cursor-pointer shrink-0 ${
                   currentChat === chat.id ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'
                 }`}
                 onClick={() => setCurrentChat(chat.id)}
               >
                 <span className="truncate max-w-[150px]">{chat.title}</span>
-                <div className="flex space-x-1">
+                <div className="flex gap-1">
                   <Dialog open={isRenaming} onOpenChange={setIsRenaming}>
                     <DialogTrigger asChild>
                       <Button
