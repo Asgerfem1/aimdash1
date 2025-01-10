@@ -208,8 +208,8 @@ export function ChatbotPage() {
           <Plus className="h-4 w-4 mr-2" />
           New Chat
         </Button>
-        <ScrollArea className="w-[600px]">
-          <div className="flex gap-2">
+        <ScrollArea className="w-[600px]" type="always">
+          <div className="flex gap-2 pb-4">
             {chats.map((chat) => (
               <div
                 key={chat.id}
@@ -263,7 +263,7 @@ export function ChatbotPage() {
               </div>
             ))}
           </div>
-          <ScrollBar orientation="horizontal" />
+          <ScrollBar orientation="horizontal" className="h-2.5" />
         </ScrollArea>
       </div>
       <div className="flex-1 overflow-y-auto space-y-4 p-4">
