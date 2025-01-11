@@ -204,7 +204,7 @@ export function ChatbotPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] max-w-full">
       <div className="border-b p-4 flex items-center gap-4">
-        <Button onClick={createNewChat} variant="outline" size="sm" className="shrink-0">
+        <Button onClick={createNewChat} variant="outline" size="sm" className="shrink-0 h-9">
           <Plus className="h-4 w-4 mr-2" />
           New Chat
         </Button>
