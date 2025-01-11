@@ -136,11 +136,25 @@ export function ChatbotPage() {
         .eq('id', chatId);
 
       if (error) throw error;
-      setChats(prev => prev.filter(chat => chat.id !== chatId));
+
+      // Remove the deleted chat from the state
+      const updatedChats = chats.filter(chat => chat.id !== chatId);
+      setChats(updatedChats);
+
+      // If we're deleting the current chat
       if (currentChat === chatId) {
-        const remainingChats = chats.filter(chat => chat.id !== chatId);
-        setCurrentChat(remainingChats.length > 0 ? remainingChats[0].id : null);
+        if (updatedChats.length > 0) {
+          // Set the current chat to the first available chat
+          setCurrentChat(updatedChats[0].id);
+          // Load messages for the new current chat
+          await loadMessages(updatedChats[0].id);
+        } else {
+          // If no chats remain, clear the current chat and messages
+          setCurrentChat(null);
+          setMessages([]);
+        }
       }
+      
       toast.success("Chat deleted successfully");
     } catch (error) {
       console.error('Error deleting chat:', error);
