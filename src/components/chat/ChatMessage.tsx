@@ -9,18 +9,46 @@ interface ChatMessageProps {
 export function ChatMessage({ content, isBot }: ChatMessageProps) {
   // Function to process text and handle markdown-style formatting
   const formatText = (text: string) => {
-    // Replace markdown headers with styled text
-    const processedText = text
-      .replace(/##\s*(.*?)(\n|$)/g, '$1') // Remove ## headers
-      .replace(/#\s*(.*?)(\n|$)/g, '$1')  // Remove # headers
-      .replace(/\*\*(.*?)\*\*/g, '$1');   // Remove bold markers
+    // Process the text line by line to handle headers and bold text
+    return text.split('\n').map((line, index) => {
+      // Check for H2 headers (##)
+      if (line.startsWith('## ')) {
+        return (
+          <h2 key={index} className="text-xl font-semibold mb-2">
+            {line.substring(3)}
+          </h2>
+        );
+      }
+      
+      // Check for H1 headers (#)
+      if (line.startsWith('# ')) {
+        return (
+          <h1 key={index} className="text-2xl font-bold mb-3">
+            {line.substring(2)}
+          </h1>
+        );
+      }
 
-    return processedText.split('\n').map((line, index) => (
-      <span key={index}>
-        {line}
-        {index !== text.split('\n').length - 1 && <br />}
-      </span>
-    ));
+      // Handle bold text (**) within regular lines
+      const parts = line.split(/(\*\*.*?\*\*)/g);
+      const formattedLine = parts.map((part, partIndex) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return (
+            <strong key={partIndex} className="font-semibold">
+              {part.slice(2, -2)}
+            </strong>
+          );
+        }
+        return part;
+      });
+
+      return (
+        <span key={index} className="block">
+          {formattedLine}
+          {index !== text.split('\n').length - 1 && <br />}
+        </span>
+      );
+    });
   };
 
   return (
@@ -38,7 +66,7 @@ export function ChatMessage({ content, isBot }: ChatMessageProps) {
         )}
       </div>
       <div className="flex-1">
-        <p className="text-sm whitespace-pre-wrap">{formatText(content)}</p>
+        <div className="text-sm whitespace-pre-wrap">{formatText(content)}</div>
       </div>
     </div>
   );
