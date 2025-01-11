@@ -27,6 +27,8 @@ interface Chat {
   created_at: string;
 }
 
+const INITIAL_BOT_MESSAGE = "Hello! I'm your goal planning assistant. Share your goal with me, and I'll help you break it down into actionable steps, suggest timelines, and recommend priority levels.";
+
 export function ChatbotPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,10 +77,30 @@ export function ChatbotPage() {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data.map(msg => ({
-        content: msg.content,
-        isBot: msg.is_bot
-      })));
+      
+      // If there are no messages, add the initial bot message
+      if (data.length === 0) {
+        setMessages([{
+          content: INITIAL_BOT_MESSAGE,
+          isBot: true
+        }]);
+        
+        // Save the initial message to the database
+        const { error: insertError } = await supabase
+          .from('chat_messages')
+          .insert([{
+            chat_id: chatId,
+            content: INITIAL_BOT_MESSAGE,
+            is_bot: true
+          }]);
+          
+        if (insertError) throw insertError;
+      } else {
+        setMessages(data.map(msg => ({
+          content: msg.content,
+          isBot: msg.is_bot
+        })));
+      }
     } catch (error) {
       console.error('Error loading messages:', error);
       toast.error("Failed to load messages");
