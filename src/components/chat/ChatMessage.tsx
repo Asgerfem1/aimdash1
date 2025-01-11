@@ -7,9 +7,15 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ content, isBot }: ChatMessageProps) {
-  // Function to process text and preserve formatting
+  // Function to process text and handle markdown-style formatting
   const formatText = (text: string) => {
-    return text.split('\n').map((line, index) => (
+    // Replace markdown headers with styled text
+    const processedText = text
+      .replace(/##\s*(.*?)(\n|$)/g, '$1') // Remove ## headers
+      .replace(/#\s*(.*?)(\n|$)/g, '$1')  // Remove # headers
+      .replace(/\*\*(.*?)\*\*/g, '$1');   // Remove bold markers
+
+    return processedText.split('\n').map((line, index) => (
       <span key={index}>
         {line}
         {index !== text.split('\n').length - 1 && <br />}
