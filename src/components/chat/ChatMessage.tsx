@@ -4,13 +4,23 @@ import { Bot, User } from "lucide-react";
 interface ChatMessageProps {
   content: string;
   isBot: boolean;
+  isLoading?: boolean;
 }
 
-export function ChatMessage({ content, isBot }: ChatMessageProps) {
+export function ChatMessage({ content, isBot, isLoading }: ChatMessageProps) {
   // Function to process text and handle markdown-style formatting
   const formatText = (text: string) => {
     // Process the text line by line to handle headers and bold text
     return text.split('\n').map((line, index) => {
+      // Check for H3 headers (###)
+      if (line.startsWith('### ')) {
+        return (
+          <h3 key={index} className="text-lg font-semibold mb-2">
+            {line.substring(4)}
+          </h3>
+        );
+      }
+      
       // Check for H2 headers (##)
       if (line.startsWith('## ')) {
         return (
@@ -66,7 +76,17 @@ export function ChatMessage({ content, isBot }: ChatMessageProps) {
         )}
       </div>
       <div className="flex-1">
-        <div className="text-sm whitespace-pre-wrap">{formatText(content)}</div>
+        <div className="text-sm whitespace-pre-wrap">
+          {isLoading ? (
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
+              <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
+              <div className="w-2 h-2 bg-primary rounded-full animate-bounce [animation-delay:0.4s]" />
+            </div>
+          ) : (
+            formatText(content)
+          )}
+        </div>
       </div>
     </div>
   );

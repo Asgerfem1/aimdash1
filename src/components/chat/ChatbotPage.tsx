@@ -308,6 +308,7 @@ export function ChatbotPage() {
             key={index}
             content={message.content}
             isBot={message.isBot}
+            isLoading={isLoading && index === messages.length - 1 && message.isBot}
           />
         ))}
       </div>
