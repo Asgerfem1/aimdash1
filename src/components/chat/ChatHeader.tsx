@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react";
+import { useState } from "react"; // Added this import
 import { Button } from "@/components/ui/button";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
