@@ -89,7 +89,8 @@ const Index = () => {
       "Priority levels",
       "Recurring goals",
       "Visual analytics",
-      "Custom categories"
+      "Custom categories",
+      "AI Goal Planning Assistant", // Added new feature
     ],
   };
 
